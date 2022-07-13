@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { openDB, deleteDB, wrap, unwrap } from 'idb';
+import { openDB } from 'idb';
 
 import './App.css';
 
@@ -13,7 +13,8 @@ const tasksDB = openDB('tasks', 1, {
 })
 
 function App() {
-  const [tasks, setTasks] = useState<string[]>([""])
+  const [tasks, setTasks] = useState<string[]>([])
+  const [loadedFromDB, markLoadedFromDB] = useState<boolean>(false) // becomes true once, stays true
 
   // load from local DB on mount
   useEffect(() => {
@@ -22,31 +23,30 @@ function App() {
       .then(newTasks => {
         console.log(newTasks)
         setTasks(newTasks)
+        markLoadedFromDB(true)
       })
   }, [])
 
-  // TODO would be nicer to write to DB in another useEffect so it doesn't need to be part of every mutation function
-  // OTOH, might be able to make smaller writes this way, with a different DB schema
-
-  const persistTasks = (tasks: string[]) => tasksDB.then(db => db.put(theStore, tasks, theKey))
+  useEffect(() => {
+    if (loadedFromDB) { // ensure we don't write [] before loading from DB
+      tasksDB.then(db => db.put(theStore, tasks, theKey))
+    }
+  }, [tasks, loadedFromDB])
 
   const editTask = (key: number) => (event: React.ChangeEvent<HTMLInputElement>) => setTasks((oldTasks: string[]) => {
     let newTasks = [...oldTasks]
     newTasks[key] = event.target.value;
-    persistTasks(newTasks)
     return newTasks
   })
 
   const appendEmpty = () => setTasks(oldTasks => {
     const newTasks = [...oldTasks, ""]
-    persistTasks(newTasks)
     return newTasks
   })
 
   const deleteTask = (key: number) => () =>
     setTasks(oldTasks => {
       const newTasks = [...oldTasks.slice(0, key), ...oldTasks.slice(key+1, oldTasks.length)]
-      persistTasks(newTasks)
       return newTasks
     })
 
