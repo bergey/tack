@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Tack",
+  "name": "Tack: todo list by Teal Labs",
   "icons": [
     {
       "src": "teal.ico",
