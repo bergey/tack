@@ -2,29 +2,27 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-import { task, tasksDB, theStore, theKey } from "./model";
+import { task, TaskStore } from "./model";
 
-export default function TaskList() {
+export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   const [tasks, setTasks] = useState<task[]>([]);
   const [loadedFromDB, markLoadedFromDB] = useState<boolean>(false); // becomes true once, stays true
 
   // load from local DB on mount
   useEffect(() => {
-    tasksDB
-      .then((db) => db.get(theStore, theKey))
-      .then((newTasks) => {
-        console.log(newTasks);
-        setTasks(newTasks);
-        markLoadedFromDB(true);
-      });
-  }, []);
+    taskStore.get.then((newTasks) => {
+      console.log(newTasks);
+      setTasks(newTasks);
+      markLoadedFromDB(true);
+    });
+  }, [taskStore.get]);
 
   useEffect(() => {
+    // ensure we don't write [] before loading from DB
     if (loadedFromDB) {
-      // ensure we don't write [] before loading from DB
-      tasksDB.then((db) => db.put(theStore, tasks, theKey));
+      taskStore.set(tasks);
     }
-  }, [tasks, loadedFromDB]);
+  }, [tasks, loadedFromDB, taskStore]);
 
   const editTask =
     (key: number) => (event: React.ChangeEvent<HTMLInputElement>) =>

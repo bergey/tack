@@ -5,10 +5,15 @@ export interface task {
   checked: boolean;
 }
 
-export const theStore = "list-items";
-export const theKey = "the-list";
+export interface TaskStore {
+  get: Promise<task[]>;
+  set: (newTasks: task[]) => Promise<void>;
+}
 
-export const tasksDB = openDB("tasks", 2, {
+const theStore = "list-items";
+const theKey = "the-list";
+
+const tasksDB = openDB("tasks", 2, {
   upgrade(db, oldVersion, _newVersion, tx) {
     if (oldVersion < 1) {
       db.createObjectStore(theStore);
@@ -25,3 +30,9 @@ export const tasksDB = openDB("tasks", 2, {
     }
   },
 });
+
+export const taskStore: TaskStore = {
+  get: tasksDB.then((db) => db.get(theStore, theKey)),
+  set: (newTasks) =>
+    tasksDB.then((db) => db.put(theStore, newTasks, theKey)).then((_) => {}),
+};
