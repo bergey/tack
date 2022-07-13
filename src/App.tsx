@@ -89,7 +89,7 @@ function App() {
               </li>
             ))}
         </ul>
-        <button onClick={appendEmpty}>New Task</button>
+        <button className="primary" onClick={appendEmpty}>New Task</button>
 
     </div>
   );

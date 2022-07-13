@@ -1,3 +1,9 @@
+:root {
+    --bright-teal: #299;
+    --dark-teal: #055;
+    --gray: #282c34;
+}
+
 h1 {
     font-size: 1.44em;
     font-weight: normal;
@@ -5,7 +11,7 @@ h1 {
 
 .App {
   text-align: center;
-  background-color: #282c34;
+  background-color: var(--gray);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -44,13 +50,31 @@ ul.checklist {
 }
 
 button {
-    color: #077;;
+    color: var(--dark-teal);
     background-color: transparent;
     border-width: 0;
     border-radius: 0.3em;
 }
 
+button.primary {
+    color: var(--bright-teal);
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--bright-teal);
+    padding: 0.4em 0.8em;
+}
+
 button:hover {
-    color: #444;;
-    background-color: #299;
+    color: var(--gray);;
+    background-color: var(--bright-teal);
+}
+
+input[type=text] {
+    background-color: transparent;
+    border-width: 0;
+    color: white;
+}
+
+input[type=text]:focus {
+    background-color: var(--dark-teal);
 }
