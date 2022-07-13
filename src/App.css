@@ -1,3 +1,8 @@
+h1 {
+    font-size: 1.44em;
+    font-weight: normal;
+}
+
 .App {
   text-align: center;
   background-color: #282c34;
@@ -36,4 +41,16 @@
 
 ul.checklist {
    list-style-type: none;
+}
+
+button {
+    color: #077;;
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0.3em;
+}
+
+button:hover {
+    color: #444;;
+    background-color: #299;
 }

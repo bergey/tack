@@ -1,4 +1,6 @@
 import React, {useEffect, useState} from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { openDB } from 'idb';
 
 import './App.css';
@@ -83,7 +85,7 @@ function App() {
               <li key={i}>
                   <input type="checkbox" checked={t.checked} onChange={checkTask(i)}></input>
                   <input type="text" value={t.title} onChange={editTask(i)}></input>
-                  <button onClick={deleteTask(i)}>-</button>
+                  <button onClick={deleteTask(i)} aria-label="delete"><FontAwesomeIcon icon={faTrash} /></button>
               </li>
             ))}
         </ul>
