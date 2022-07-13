@@ -33,3 +33,7 @@
     transform: rotate(360deg);
   }
 }
+
+ul.checklist {
+   list-style-type: none;
+}

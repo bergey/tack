@@ -78,7 +78,7 @@ function App() {
         <h1>
             Things to do:
         </h1>
-        <ul>
+        <ul className="checklist">
             {tasks && tasks.map( (t: task, i: number) => (
               <li key={i}>
                   <input type="checkbox" checked={t.checked} onChange={checkTask(i)}></input>
