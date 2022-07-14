@@ -1,16 +1,26 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
-import App from "./App";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+
+import { taskStore } from "./model";
+import TaskList from "./routes/TaskList";
+import TaskDetail from "./routes/Detail";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
+
 root.render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<TaskList taskStore={taskStore} />} />
+        <Route path="detail" element={<TaskDetail taskStore={taskStore} />} />
+      </Routes>
+    </BrowserRouter>
   </React.StrictMode>
 );
 

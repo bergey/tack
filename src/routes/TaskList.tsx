@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-import { task, TaskId, TaskStore } from "./model";
-import { newDebouncer, Debouncer } from "./util";
+import { task, TaskId, TaskStore } from "../model";
+import { newDebouncer, Debouncer } from "../util";
+import "../App.css";
 
 export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   const [tasks, setTasks] = useState<task[]>([]);
