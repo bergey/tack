@@ -28,7 +28,7 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
     });
   }
 
-  const editTask =
+  const editTask = // TODO debounce the DB write, instead of writing on every character
     (key: TaskId) => (event: React.ChangeEvent<HTMLInputElement>) => {
       let newTitle = event.target.value;
       setTasks((oldTasks: task[]) =>

@@ -28,37 +28,41 @@ const randomTaskId = () => random128Bit() as TaskId;
 
 const tasksDB = openDB("tasks", 3, {
   upgrade(db, oldVersion, _newVersion, tx) {
-    const theStore = "list-items";
-    const theKey = "the-list";
+    (async () => {
+      const theStore = "list-items";
+      const theKey = "the-list";
 
-    if (oldVersion < 1) {
-      db.createObjectStore(theStore);
-      tx.objectStore(theStore).put([""], theKey);
-    }
+      if (oldVersion < 1) {
+        db.createObjectStore(theStore);
+        await tx.objectStore(theStore).put([""], theKey);
+      }
 
-    if (oldVersion < 2) {
       const store = tx.objectStore(theStore);
-      store.get(theKey).then((oldTasks) =>
-        store.put(
+      if (oldVersion < 2) {
+        const oldTasks = await store.get(theKey);
+        await store.put(
           oldTasks.map((title: string) => ({ title: title, checked: false })),
           theKey
-        )
-      );
-    }
+        );
+      }
 
-    if (oldVersion < 3) {
-      const taskStore = db.createObjectStore("tasks", { keyPath: "id" });
-      const store = tx.objectStore(theStore);
-      store.get(theKey).then((oldTasks) => {
+      if (oldVersion < 3) {
+        await db.createObjectStore("tasks", { keyPath: "id" });
+        const taskStore = tx.objectStore("tasks");
+        const store = tx.objectStore(theStore);
+        const oldTasks = await store.get(theKey);
+        console.log(oldTasks);
         let keys = [];
         for (const t of oldTasks) {
           const id = randomTaskId();
-          taskStore.put(t, id);
-          keys.push(t);
+          t.id = id;
+          await taskStore.put(t);
+          keys.push(id);
         }
-        store.put(keys, "order");
-      });
-    }
+        await store.put(keys, "order");
+        await store.delete(theKey);
+      }
+    })();
   },
 });
 
@@ -77,14 +81,23 @@ export const taskStore: TaskStore = {
   },
 
   setTitle: async (id, title) => {
+    console.log(id);
     const tx = (await tasksDB).transaction("tasks", "readwrite");
-    const task = tx.store.get(id);
-    tx.store.put({ ...task, title: title }, id);
+    const task = await tx.store.get(id);
+    console.log(task);
+    tx.store.put({ ...task, title: title });
   },
 
   append: async (title) => {
     const t = { id: randomTaskId(), title: title, checked: false };
-    (await tasksDB).put("tasks", t, t.id);
+    const tx = (await tasksDB).transaction(
+      ["list-items", "tasks"],
+      "readwrite"
+    );
+    await tx.objectStore("tasks").put(t);
+    const order = await tx.objectStore("list-items").get("order");
+    order.push(t);
+    await tx.objectStore("list-items").put(order, "order");
     return t.id;
   },
 
@@ -105,6 +118,6 @@ export const taskStore: TaskStore = {
   checkTask: async (id, checked) => {
     const tx = (await tasksDB).transaction("tasks", "readwrite");
     const task = tx.store.get(id);
-    tx.store.put({ ...task, checked: checked }, id);
+    tx.store.put({ ...task, checked: checked });
   },
 };
