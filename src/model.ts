@@ -96,7 +96,7 @@ export const taskStore: TaskStore = {
     );
     await tx.objectStore("tasks").put(t);
     const order = await tx.objectStore("list-items").get("order");
-    order.push(t);
+    order.push(t.id);
     await tx.objectStore("list-items").put(order, "order");
     return t.id;
   },
@@ -108,7 +108,7 @@ export const taskStore: TaskStore = {
     const order = await orderStore.get("order");
     orderStore &&
       (await orderStore.put(
-        order.filter((t: task) => t.id !== id),
+        order.filter((tid: TaskId) => tid !== id),
         "order"
       ));
     await tx.objectStore("tasks").delete(id);
@@ -117,7 +117,7 @@ export const taskStore: TaskStore = {
 
   checkTask: async (id, checked) => {
     const tx = (await tasksDB).transaction("tasks", "readwrite");
-    const task = tx.store.get(id);
+    const task = await tx.store.get(id);
     tx.store.put({ ...task, checked: checked });
   },
 };
