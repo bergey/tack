@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 import { task, TaskId, TaskStore } from "./model";
+import { newDebouncer, Debouncer } from "./util";
 
 export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   const [tasks, setTasks] = useState<task[]>([]);
@@ -28,14 +29,21 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
     });
   }
 
-  const editTask = // TODO debounce the DB write, instead of writing on every character
-    (key: TaskId) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  let editTaskDebouncers = new Map<TaskId, Debouncer>();
+  const editTask = (key: TaskId) => {
+    return (event: React.ChangeEvent<HTMLInputElement>) => {
       let newTitle = event.target.value;
       setTasks((oldTasks: task[]) =>
         updateOnKey(key, (t) => (t.title = newTitle), oldTasks)
       );
-      taskStore.setTitle(key, newTitle);
+      let debounce = editTaskDebouncers.get(key);
+      if (debounce === undefined) {
+        debounce = newDebouncer(5000);
+        editTaskDebouncers.set(key, debounce);
+      }
+      debounce(() => taskStore.setTitle(key, newTitle));
     };
+  };
 
   const appendEmpty = async () => {
     const id = await taskStore.append("");
