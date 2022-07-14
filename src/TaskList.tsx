@@ -2,48 +2,63 @@ import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
-import { task, TaskStore } from "./model";
+import { task, TaskId, TaskStore } from "./model";
 
 export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   const [tasks, setTasks] = useState<task[]>([]);
 
   // load from local DB on mount
-  useEffect(() => taskStore.getAll().then(setTasks), [taskStore.getAll]);
+  useEffect(() => {
+    taskStore.getAll().then(setTasks);
+  }, [taskStore]);
+
+  function updateOnKey(
+    key: TaskId,
+    update: (t: task) => void,
+    tasks: task[]
+  ): task[] {
+    return tasks.map((t) => {
+      if (t.id === key) {
+        let newTask = structuredClone(t);
+        update(newTask);
+        return newTask;
+      } else {
+        return t;
+      }
+    });
+  }
 
   const editTask =
-    (key: string) => (event: React.ChangeEvent<HTMLInputElement>) =>
-      setTasks((oldTasks: task[]) => {
-        let newTitle = event.target.value;
-        let newTasks = [...oldTasks];
-        newTasks[key].title = newTitle;
-        taskStore.setTitle(key, newTitle);
-        return newTasks;
-      });
+    (key: TaskId) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      let newTitle = event.target.value;
+      setTasks((oldTasks: task[]) =>
+        updateOnKey(key, (t) => (t.title = newTitle), oldTasks)
+      );
+      taskStore.setTitle(key, newTitle);
+    };
 
-  const appendEmpty = () =>
-    setTasks((oldTasks) => {
-      const newTasks = [...oldTasks, { title: "", checked: false }];
-      // TODO persist to DB
-      return newTasks;
-    });
+  const appendEmpty = async () => {
+    const id = await taskStore.append("");
+    // TODO avoid duplicating content of new task
+    setTasks((oldTasks) => [
+      ...oldTasks,
+      { id: id, title: "", checked: false },
+    ]);
+  };
 
-  const deleteTask = (key: string) => () =>
-    setTasks((oldTasks) => {
-      const newTasks = oldTasks.filter((t) => t.id !== key);
-      // TODO persist to DB
-      return newTasks;
-    });
+  const deleteTask = (key: TaskId) => () => {
+    setTasks((oldTasks) => oldTasks.filter((t) => t.id !== key));
+    taskStore.deleteTask(key);
+  };
 
   const checkTask =
-    (key: string) => (event: React.ChangeEvent<HTMLInputElement>) =>
-      setTasks((oldTasks: task[]) => {
-        let newTasks = [...oldTasks];
-        console.log(event);
-        console.log(event.target);
-        newTasks[key].checked = event.target.checked;
-        // TODO persist to DB
-        return newTasks;
-      });
+    (key: TaskId) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const checked = event.target.checked;
+      setTasks((oldTasks: task[]) =>
+        updateOnKey(key, (t) => (t.checked = checked), oldTasks)
+      );
+      taskStore.checkTask(key, checked);
+    };
 
   return (
     <div className="App">

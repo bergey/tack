@@ -1,24 +1,30 @@
 import { openDB } from "idb";
 
+// https://kubyshkin.name/posts/newtype-in-typescript/
+export type TaskId = string & { readonly __tag: unique symbol };
+
 export interface task {
-  id: string; // TODO newtype
+  id: TaskId;
   title: string;
   checked: boolean;
 }
 
 export interface TaskStore {
   getAll: () => Promise<task[]>;
-  setTitle: (id: string, title: string) => Promise<void>;
-  deleteTask: (id: string) => Promise<void>;
-  append: (title: string) => Promise<string>;
+  setTitle: (id: TaskId, title: string) => Promise<void>;
+  deleteTask: (id: TaskId) => Promise<void>;
+  append: (title: string) => Promise<TaskId>;
+  checkTask: (id: TaskId, checked: boolean) => Promise<void>;
 }
 
 // base64 encoded 128-bit random values
-const randomTaskId = () => {
+function random128Bit(): string {
   let a = new BigUint64Array(2);
   crypto.getRandomValues(a);
   return (btoa as any)(a);
-};
+}
+
+const randomTaskId = () => random128Bit() as TaskId;
 
 const tasksDB = openDB("tasks", 3, {
   upgrade(db, oldVersion, _newVersion, tx) {
@@ -69,16 +75,19 @@ export const taskStore: TaskStore = {
     }
     return ret;
   },
+
   setTitle: async (id, title) => {
     const tx = (await tasksDB).transaction("tasks", "readwrite");
     const task = tx.store.get(id);
     tx.store.put({ ...task, title: title }, id);
   },
+
   append: async (title) => {
     const t = { id: randomTaskId(), title: title, checked: false };
     (await tasksDB).put("tasks", t, t.id);
     return t.id;
   },
+
   deleteTask: async (id) => {
     const db = await tasksDB;
     const tx = db.transaction(["list-items", "tasks"], "readwrite");
@@ -90,6 +99,12 @@ export const taskStore: TaskStore = {
         "order"
       ));
     await tx.objectStore("tasks").delete(id);
-    tx.done;
+    await tx.done;
+  },
+
+  checkTask: async (id, checked) => {
+    const tx = (await tasksDB).transaction("tasks", "readwrite");
+    const task = tx.store.get(id);
+    tx.store.put({ ...task, checked: checked }, id);
   },
 };
