@@ -7,12 +7,14 @@ export interface task {
   id: TaskId;
   title: string;
   checked: boolean;
+  description: string;
 }
 
 export interface TaskStore {
   getAll: () => Promise<task[]>;
   get: (id: TaskId) => Promise<task>;
   setTitle: (id: TaskId, title: string) => Promise<void>;
+  setDescription: (id: TaskId, description: string) => Promise<void>;
   deleteTask: (id: TaskId) => Promise<void>;
   append: (title: string) => Promise<task>;
   checkTask: (id: TaskId, checked: boolean) => Promise<void>;
@@ -32,10 +34,11 @@ export function emptyTask(id: TaskId): task {
     id: id,
     title: "",
     checked: false,
+    description: "",
   };
 }
 
-const tasksDB = openDB("tasks", 3, {
+const tasksDB = openDB("tasks", 4, {
   upgrade(db, oldVersion, _newVersion, tx) {
     (async () => {
       const theStore = "list-items";
@@ -71,6 +74,14 @@ const tasksDB = openDB("tasks", 3, {
         await store.put(keys, "order");
         await store.delete(theKey);
       }
+
+      if (oldVersion < 4) {
+        const tasks = await tx.objectStore("tasks").getAll();
+        for (const t of tasks) {
+          t.description = "";
+          tx.objectStore("tasks").put(t);
+        }
+      }
     })();
   },
 });
@@ -99,8 +110,15 @@ export const taskStore: TaskStore = {
     tx.store.put({ ...task, title: title });
   },
 
+  setDescription: async (id, description) => {
+    const tx = (await tasksDB).transaction("tasks", "readwrite");
+    const task = await tx.store.get(id);
+    tx.store.put({ ...task, description: description });
+  },
+
   append: async (title) => {
-    const t = { id: randomTaskId(), title: title, checked: false };
+    let t = emptyTask(randomTaskId());
+    t.title = title;
     const tx = (await tasksDB).transaction(
       ["list-items", "tasks"],
       "readwrite"

@@ -13,10 +13,16 @@ export default function TaskDetail() {
     taskStore.get(taskId).then(setTask);
   }, [taskStore, taskId]);
 
+  function setDesc(ev: React.ChangeEvent<HTMLInputElement>) {
+    const newDesc = ev.target.value;
+    setTask((oldTask) => ({ ...oldTask, description: newDesc }));
+    taskStore.setDescription(taskId, newDesc);
+  }
+
   return (
     <>
       <h1>{task.title}</h1>
-      <p>TODO: put something here</p>
+      <input type="text" value={task.description} onChange={setDesc}></input>
     </>
   );
 }
