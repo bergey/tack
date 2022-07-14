@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTrash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faTrash,
+  faArrowUpRightFromSquare,
+} from "@fortawesome/free-solid-svg-icons";
+import { Link } from "react-router-dom";
 
 import { task, TaskId, TaskStore } from "../model";
 import { newDebouncer, Debouncer } from "../util";
@@ -89,6 +93,9 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
               <button onClick={deleteTask(t.id)} aria-label="delete">
                 <FontAwesomeIcon icon={faTrash} />
               </button>
+              <Link to={`/detail/${t.id}`}>
+                <FontAwesomeIcon icon={faArrowUpRightFromSquare} size="xs" />
+              </Link>
             </li>
           ))}
       </ul>

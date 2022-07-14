@@ -18,7 +18,8 @@ root.render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<TaskList taskStore={taskStore} />} />
-        <Route path="detail" element={<TaskDetail taskStore={taskStore} />} />
+        <Route path="detail/:taskId" element={<TaskDetail />} />
+        <Route path="*" element={<p>no route matched</p>} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

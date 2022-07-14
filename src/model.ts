@@ -11,6 +11,7 @@ export interface task {
 
 export interface TaskStore {
   getAll: () => Promise<task[]>;
+  get: (id: TaskId) => Promise<task>;
   setTitle: (id: TaskId, title: string) => Promise<void>;
   deleteTask: (id: TaskId) => Promise<void>;
   append: (title: string) => Promise<TaskId>;
@@ -25,6 +26,14 @@ function random128Bit(): string {
 }
 
 const randomTaskId = () => random128Bit() as TaskId;
+
+export function emptyTask(id: TaskId): task {
+  return {
+    id: id,
+    title: "",
+    checked: false,
+  };
+}
 
 const tasksDB = openDB("tasks", 3, {
   upgrade(db, oldVersion, _newVersion, tx) {
@@ -47,7 +56,7 @@ const tasksDB = openDB("tasks", 3, {
       }
 
       if (oldVersion < 3) {
-        await db.createObjectStore("tasks", { keyPath: "id" });
+        db.createObjectStore("tasks", { keyPath: "id" });
         const taskStore = tx.objectStore("tasks");
         const store = tx.objectStore(theStore);
         const oldTasks = await store.get(theKey);
@@ -79,6 +88,8 @@ export const taskStore: TaskStore = {
     }
     return ret;
   },
+
+  get: async (id) => (await tasksDB).get("tasks", id),
 
   setTitle: async (id, title) => {
     console.log(id);
