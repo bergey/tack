@@ -6,54 +6,42 @@ import { task, TaskStore } from "./model";
 
 export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   const [tasks, setTasks] = useState<task[]>([]);
-  const [loadedFromDB, markLoadedFromDB] = useState<boolean>(false); // becomes true once, stays true
 
   // load from local DB on mount
-  useEffect(() => {
-    taskStore.get.then((newTasks) => {
-      console.log(newTasks);
-      setTasks(newTasks);
-      markLoadedFromDB(true);
-    });
-  }, [taskStore.get]);
-
-  useEffect(() => {
-    // ensure we don't write [] before loading from DB
-    if (loadedFromDB) {
-      taskStore.set(tasks);
-    }
-  }, [tasks, loadedFromDB, taskStore]);
+  useEffect(() => taskStore.getAll().then(setTasks), [taskStore.getAll]);
 
   const editTask =
-    (key: number) => (event: React.ChangeEvent<HTMLInputElement>) =>
+    (key: string) => (event: React.ChangeEvent<HTMLInputElement>) =>
       setTasks((oldTasks: task[]) => {
+        let newTitle = event.target.value;
         let newTasks = [...oldTasks];
-        newTasks[key].title = event.target.value;
+        newTasks[key].title = newTitle;
+        taskStore.setTitle(key, newTitle);
         return newTasks;
       });
 
   const appendEmpty = () =>
     setTasks((oldTasks) => {
       const newTasks = [...oldTasks, { title: "", checked: false }];
+      // TODO persist to DB
       return newTasks;
     });
 
-  const deleteTask = (key: number) => () =>
+  const deleteTask = (key: string) => () =>
     setTasks((oldTasks) => {
-      const newTasks = [
-        ...oldTasks.slice(0, key),
-        ...oldTasks.slice(key + 1, oldTasks.length),
-      ];
+      const newTasks = oldTasks.filter((t) => t.id !== key);
+      // TODO persist to DB
       return newTasks;
     });
 
   const checkTask =
-    (key: number) => (event: React.ChangeEvent<HTMLInputElement>) =>
+    (key: string) => (event: React.ChangeEvent<HTMLInputElement>) =>
       setTasks((oldTasks: task[]) => {
         let newTasks = [...oldTasks];
         console.log(event);
         console.log(event.target);
         newTasks[key].checked = event.target.checked;
+        // TODO persist to DB
         return newTasks;
       });
 
@@ -62,15 +50,19 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
       <h1>Things to do:</h1>
       <ul className="checklist">
         {tasks &&
-          tasks.map((t: task, i: number) => (
-            <li key={i}>
+          tasks.map((t: task) => (
+            <li key={t.id}>
               <input
                 type="checkbox"
                 checked={t.checked}
-                onChange={checkTask(i)}
+                onChange={checkTask(t.id)}
               ></input>
-              <input type="text" value={t.title} onChange={editTask(i)}></input>
-              <button onClick={deleteTask(i)} aria-label="delete">
+              <input
+                type="text"
+                value={t.title}
+                onChange={editTask(t.id)}
+              ></input>
+              <button onClick={deleteTask(t.id)} aria-label="delete">
                 <FontAwesomeIcon icon={faTrash} />
               </button>
             </li>
