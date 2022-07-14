@@ -51,12 +51,8 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
   };
 
   const appendEmpty = async () => {
-    const id = await taskStore.append("");
-    // TODO avoid duplicating content of new task
-    setTasks((oldTasks) => [
-      ...oldTasks,
-      { id: id, title: "", checked: false },
-    ]);
+    const task = await taskStore.append("");
+    setTasks((oldTasks) => [...oldTasks, task]);
   };
 
   const deleteTask = (key: TaskId) => () => {

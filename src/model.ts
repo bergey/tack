@@ -14,7 +14,7 @@ export interface TaskStore {
   get: (id: TaskId) => Promise<task>;
   setTitle: (id: TaskId, title: string) => Promise<void>;
   deleteTask: (id: TaskId) => Promise<void>;
-  append: (title: string) => Promise<TaskId>;
+  append: (title: string) => Promise<task>;
   checkTask: (id: TaskId, checked: boolean) => Promise<void>;
 }
 
@@ -109,7 +109,7 @@ export const taskStore: TaskStore = {
     const order = await tx.objectStore("list-items").get("order");
     order.push(t.id);
     await tx.objectStore("list-items").put(order, "order");
-    return t.id;
+    return t;
   },
 
   deleteTask: async (id) => {
