@@ -7,7 +7,6 @@ import {
 import { Link } from "react-router-dom";
 
 import { task, TaskId, TaskStore } from "../model";
-import { newDebouncer, Debouncer } from "../util";
 import "../App.css";
 
 export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
@@ -34,21 +33,14 @@ export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
     });
   }
 
-  let editTaskDebouncers = new Map<TaskId, Debouncer>();
-  const editTask = (key: TaskId) => {
-    return (event: React.ChangeEvent<HTMLInputElement>) => {
+  const editTask = // TODO debounce the DB write, instead of writing on every character
+    (key: TaskId) => (event: React.ChangeEvent<HTMLInputElement>) => {
       let newTitle = event.target.value;
       setTasks((oldTasks: task[]) =>
         updateOnKey(key, (t) => (t.title = newTitle), oldTasks)
       );
-      let debounce = editTaskDebouncers.get(key);
-      if (debounce === undefined) {
-        debounce = newDebouncer(5000);
-        editTaskDebouncers.set(key, debounce);
-      }
-      debounce(() => taskStore.setTitle(key, newTitle));
+      taskStore.setTitle(key, newTitle);
     };
-  };
 
   const appendEmpty = async () => {
     const task = await taskStore.append("");
