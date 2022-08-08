@@ -1,28 +1,29 @@
-import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import { task, TaskId, taskStore, TaskStore, emptyTask } from "../model";
+import { TaskId } from "../migrations";
+import { Task, TaskStore } from "../model";
 import "../App.css";
 
-export default function TaskDetail() {
+export default function TaskDetail(props: { taskStore: TaskStore }) {
   const taskId = useParams().taskId as TaskId;
-  const [task, setTask] = useState<task>(emptyTask(taskId));
+  const taskStore = props.taskStore;
+  const [task, setTask] = useState<Task | null>(null);
 
-  // load from local DB on mount
   useEffect(() => {
     taskStore.get(taskId).then(setTask);
-  }, [taskStore, taskId]);
-
-  function setDesc(ev: React.ChangeEvent<HTMLInputElement>) {
-    const newDesc = ev.target.value;
-    setTask((oldTask) => ({ ...oldTask, description: newDesc }));
-    taskStore.setDescription(taskId, newDesc);
-  }
+  }, [taskId, taskStore]);
 
   return (
-    <>
-      <h1>{task.title}</h1>
-      <input type="text" value={task.description} onChange={setDesc}></input>
-    </>
+    task && (
+      <>
+        <h1>{task.title}</h1>
+        <input
+          type="text"
+          value={task.description}
+          onChange={(ev) => (task.description = ev.target.value)}
+        ></input>
+      </>
+    )
   );
 }
