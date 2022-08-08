@@ -1,9 +1,8 @@
-import { openDB } from "idb";
+import { useState } from "react";
 
-// https://kubyshkin.name/posts/newtype-in-typescript/
-export type TaskId = string & { readonly __tag: unique symbol };
+import { tasksDB, randomTaskId, TaskId } from "./migrations";
 
-export interface task {
+interface TaskData {
   id: TaskId;
   title: string;
   checked: boolean;
@@ -11,25 +10,76 @@ export interface task {
 }
 
 export interface TaskStore {
-  getAll: () => Promise<task[]>;
-  get: (id: TaskId) => Promise<task>;
-  setTitle: (id: TaskId, title: string) => Promise<void>;
-  setDescription: (id: TaskId, description: string) => Promise<void>;
+  getAll: () => Promise<Task[]>;
+  get: (id: TaskId) => Promise<Task>;
   deleteTask: (id: TaskId) => Promise<void>;
-  append: (title: string) => Promise<task>;
-  checkTask: (id: TaskId, checked: boolean) => Promise<void>;
+  append: (title: string) => Promise<Task>;
 }
 
-// base64 encoded 128-bit random values
-function random128Bit(): string {
-  let a = new BigUint64Array(2);
-  crypto.getRandomValues(a);
-  return (btoa as any)(a);
+// Task wraps TaskData, updates the IndexedDB copy every time a field is updated
+export class Task {
+  #id: TaskId;
+  #title: string;
+  #setTitle: (t: string) => void;
+  #checked: boolean;
+  #setChecked: (b: boolean) => void;
+  #description: string;
+  #setDescription: (d: string) => void;
+
+  constructor(data: TaskData) {
+    this.#id = data.id;
+    [this.#title, this.#setTitle] = useState(data.title);
+    [this.#checked, this.#setChecked] = useState(data.checked);
+    [this.#description, this.#setDescription] = useState(data.description);
+  }
+
+  // TODO is this racy with multiple pending calls for the same Task?
+  // TODO make it possible to call from within a transaction
+  async persistLocal() {
+    const data = {
+      id: this.#id,
+      title: this.#title,
+      checked: this.#checked,
+      description: this.#description,
+    };
+    (await tasksDB).put("tasks", data);
+  }
+
+  get id(): TaskId {
+    return this.#id;
+  }
+  // no setter for id
+
+  // setters, getters below here are identical boilerplate, mod field name, type
+  // TODO consider making the fields public but readonly, so I don't need the getters
+  // in which case rename `set title` to setTitle &c
+  get title(): string {
+    return this.#title;
+  }
+  set title(newValue: string) {
+    this.#setTitle(newValue);
+    // start IndexedDB update, do not await
+    this.persistLocal();
+  }
+
+  get checked(): boolean {
+    return this.#checked;
+  }
+  set checked(newValue: boolean) {
+    this.#setChecked(newValue);
+    this.persistLocal();
+  }
+
+  get description(): string {
+    return this.#description;
+  }
+  set description(newValue: string) {
+    this.#setDescription(newValue);
+    this.persistLocal();
+  }
 }
 
-const randomTaskId = () => random128Bit() as TaskId;
-
-export function emptyTask(id: TaskId): task {
+export function emptyTaskWithId(id: TaskId): TaskData {
   return {
     id: id,
     title: "",
@@ -38,87 +88,66 @@ export function emptyTask(id: TaskId): task {
   };
 }
 
-const tasksDB = openDB("tasks", 4, {
-  upgrade(db, oldVersion, _newVersion, tx) {
-    (async () => {
-      const theStore = "list-items";
-      const theKey = "the-list";
+export function emptyTask(): TaskData {
+  return emptyTaskWithId(randomTaskId());
+}
 
-      if (oldVersion < 1) {
-        db.createObjectStore(theStore);
-        await tx.objectStore(theStore).put([""], theKey);
-      }
-
-      const store = tx.objectStore(theStore);
-      if (oldVersion < 2) {
-        const oldTasks = await store.get(theKey);
-        await store.put(
-          oldTasks.map((title: string) => ({ title: title, checked: false })),
-          theKey
-        );
-      }
-
-      if (oldVersion < 3) {
-        db.createObjectStore("tasks", { keyPath: "id" });
-        const taskStore = tx.objectStore("tasks");
-        const store = tx.objectStore(theStore);
-        const oldTasks = await store.get(theKey);
-        console.log(oldTasks);
-        let keys = [];
-        for (const t of oldTasks) {
-          const id = randomTaskId();
-          t.id = id;
-          await taskStore.put(t);
-          keys.push(id);
-        }
-        await store.put(keys, "order");
-        await store.delete(theKey);
-      }
-
-      if (oldVersion < 4) {
-        const tasks = await tx.objectStore("tasks").getAll();
-        for (const t of tasks) {
-          t.description = "";
-          tx.objectStore("tasks").put(t);
-        }
-      }
-    })();
-  },
-});
+// singleton with all currently-used Tasks
+// ensures we don't hand out multiple Tasks representing the same DB record
+const taskCache: Map<TaskId, WeakRef<Task>> = new Map();
+const [orderCache, setOrder] = useState<Task[]>([]);
 
 export const taskStore: TaskStore = {
   getAll: async () => {
     const db = await tasksDB;
     const tx = db.transaction(["list-items", "tasks"]);
-    const order = await tx.objectStore("list-items").get("order");
+    const orderKeys = await tx.objectStore("list-items").get("order");
     const tasks = tx.objectStore("tasks");
-    let ret = [];
-    for (const k of order) {
-      const t = await tasks.get(k);
-      ret.push(t);
+    let order: Task[] = [];
+    for (const k of orderKeys) {
+      const cached = taskCache.get(k)?.deref();
+      if (cached) {
+        order.push(cached);
+      } else {
+        const t = await tasks.get(k);
+        taskCache.set(k, new WeakRef(t));
+        order.push(t);
+      }
     }
-    return ret;
+    setOrder(order);
+    return orderCache;
   },
 
-  get: async (id) => (await tasksDB).get("tasks", id),
-
-  setTitle: async (id, title) => {
-    console.log(id);
-    const tx = (await tasksDB).transaction("tasks", "readwrite");
-    const task = await tx.store.get(id);
-    console.log(task);
-    tx.store.put({ ...task, title: title });
+  get: async (id) => {
+    const cached = taskCache.get(id)?.deref();
+    if (cached) {
+      return cached;
+    } else {
+      const data = await (await tasksDB).get("tasks", id);
+      const t = new Task(data);
+      taskCache.set(id, new WeakRef(t));
+      return t;
+    }
   },
 
-  setDescription: async (id, description) => {
-    const tx = (await tasksDB).transaction("tasks", "readwrite");
-    const task = await tx.store.get(id);
-    tx.store.put({ ...task, description: description });
+  // TODO what happens if we delete a task in one tab while its detail page is open in another tab?
+  deleteTask: async (id: TaskId) => {
+    setOrder((order) => order.filter((t) => t.id !== id));
+    const tx = (await tasksDB).transaction(
+      ["list-items", "tasks"],
+      "readwrite"
+    );
+    await tx.objectStore("list-items").put(orderCache, "order");
+    await tx.objectStore("tasks").delete(id);
+    tx.done;
   },
 
-  append: async (title) => {
-    let t = emptyTask(randomTaskId());
-    t.title = title;
+  append: async () => {
+    const t = new Task(emptyTask());
+    setOrder((order) => [...order, t]);
+    t.persistLocal();
+    // TODO cache Task
+    // TODO kick off write, don't await here
     const tx = (await tasksDB).transaction(
       ["list-items", "tasks"],
       "readwrite"
@@ -128,25 +157,5 @@ export const taskStore: TaskStore = {
     order.push(t.id);
     await tx.objectStore("list-items").put(order, "order");
     return t;
-  },
-
-  deleteTask: async (id) => {
-    const db = await tasksDB;
-    const tx = db.transaction(["list-items", "tasks"], "readwrite");
-    const orderStore = tx.objectStore("list-items");
-    const order = await orderStore.get("order");
-    orderStore &&
-      (await orderStore.put(
-        order.filter((tid: TaskId) => tid !== id),
-        "order"
-      ));
-    await tx.objectStore("tasks").delete(id);
-    await tx.done;
-  },
-
-  checkTask: async (id, checked) => {
-    const tx = (await tasksDB).transaction("tasks", "readwrite");
-    const task = await tx.store.get(id);
-    tx.store.put({ ...task, checked: checked });
   },
 };
