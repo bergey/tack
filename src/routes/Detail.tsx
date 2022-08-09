@@ -1,18 +1,13 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 import { TaskId } from "../migrations";
-import { Task, TaskStore } from "../model";
+import { useTaskStore } from "../model";
 import "../App.css";
 
-export default function TaskDetail(props: { taskStore: TaskStore }) {
+export default function TaskDetail() {
   const taskId = useParams().taskId as TaskId;
-  const taskStore = props.taskStore;
-  const [task, setTask] = useState<Task | null>(null);
-
-  useEffect(() => {
-    taskStore.get(taskId).then(setTask);
-  }, [taskId, taskStore]);
+  const taskStore = useTaskStore();
+  const task = taskStore.useTask(taskId);
 
   return (
     task && (

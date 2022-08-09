@@ -6,14 +6,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "react-router-dom";
 
-import { Task, TaskStore } from "../model";
+import { Task, TaskStore, useTaskStore } from "../model";
 import "../App.css";
 
-export default function TaskList({ taskStore }: { taskStore: TaskStore }) {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  useEffect(() => {
-    taskStore.getAll().then(setTasks);
-  }, [taskStore]);
+export default function TaskList() {
+  const taskStore = useTaskStore();
+  const tasks = taskStore.useTaskList();
 
   return (
     <div className="App">
