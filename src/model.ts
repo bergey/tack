@@ -29,7 +29,7 @@ export interface Task {
   fillData: (td: TaskData) => void;
 }
 
-// TODO rename to distinguish from the one that looks up in cache & DB
+// TODO rename to distinguish from the one that looks up in DB
 export function useTask(data: TaskData): Task {
   const [title, setTitle] = useState(data.title);
   const [checked, setChecked] = useState(data.checked);
@@ -90,10 +90,6 @@ export function emptyTask(): TaskData {
   return emptyTaskWithId(randomTaskId());
 }
 
-// singleton with all currently-used Tasks
-// ensures we don't hand out multiple Tasks representing the same DB record
-const taskCache: Map<TaskId, WeakRef<Task>> = new Map();
-
 export function useTaskStore(): TaskStore {
   const [orderCache, setOrder] = useState<Task[]>([]);
 
@@ -105,35 +101,23 @@ export function useTaskStore(): TaskStore {
       const tasks = tx.objectStore("tasks");
       let order: Task[] = [];
       for (const k of orderKeys) {
-        const cached = taskCache.get(k)?.deref();
-        if (cached) {
-          order.push(cached);
-        } else {
-          const td = await tasks.get(k);
-          const t = useTask(td);
-          taskCache.set(k, new WeakRef(t));
-          order.push(t);
-        }
+        const td = await tasks.get(k);
+        const t = useTask(td);
+        order.push(t);
       }
       setOrder(order);
       return orderCache;
     },
 
     useTask: (id) => {
+      // TODO can this call useTask with the real data, without useEffect?
       const task = useTask(emptyTaskWithId("placeholder" as TaskId));
       useEffect(() => {
-        const cached = taskCache.get(id)?.deref();
-        if (cached) {
-          task.fillData(cached);
-        } else {
-          tasksDB.then((db) => {
-            db.get("tasks", id).then((data) => {
-              const t = useTask(data);
-              taskCache.set(id, new WeakRef(t));
-              task.fillData(t);
-            });
+        tasksDB.then((db) => {
+          db.get("tasks", id).then((td) => {
+            task.fillData(td);
           });
-        }
+        });
       });
       return task;
     },
@@ -144,19 +128,20 @@ export function useTaskStore(): TaskStore {
         ["list-items", "tasks"],
         "readwrite"
       );
+      setOrder(orderCache.filter((t) => t.id !== id));
+      const order = tx.objectStore("list-items").get("order");
       await tx.objectStore("list-items").put(
-        orderCache.filter((t) => t.id !== id),
+        order.filter((tid) => tid !== id),
         "order"
       );
       await tx.objectStore("tasks").delete(id);
-      tx.done;
+      await tx.done;
     },
 
     append: async () => {
       const t = useTask(emptyTask());
-      setOrder((order) => [...order, t]);
-      t.persistLocal();
-      // TODO cache Task
+      t.persistLocal(); // TODO in one transaction
+      setOrder((order) => [...orderCache, t]);
       // TODO kick off write, don't await here
       const tx = (await tasksDB).transaction(
         ["list-items", "tasks"],
