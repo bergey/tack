@@ -1,13 +1,12 @@
 import { useParams } from "react-router-dom";
 
 import { TaskId } from "../migrations";
-import { useTaskStore } from "../model";
+import { useTask } from "../model";
 import "../App.css";
 
 export default function TaskDetail() {
   const taskId = useParams().taskId as TaskId;
-  const taskStore = useTaskStore();
-  const task = taskStore.useTask(taskId);
+  const [task, updateTask] = useTask(taskId);
 
   return (
     task && (
@@ -16,7 +15,7 @@ export default function TaskDetail() {
         <input
           type="text"
           value={task.description}
-          onChange={(ev) => (task.description = ev.target.value)}
+          onChange={(ev) => updateTask({description: ev.target.value})}
         ></input>
       </>
     )
