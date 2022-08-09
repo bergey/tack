@@ -103,12 +103,17 @@ export function useTaskList(): TaskList {
   }
 
   async function updateTask(id: TaskId, partial: Partial<Task>) {
-    const old = tasks.find((t) => (t.id = id));
-    if (old !== undefined) {
-      const task = { ...old, ...partial };
-      setTasks((ts) => ts.map((t) => (t.id === task.id ? task : t)));
-      await persistLocal(task);
-    }
+    setTasks((ts) =>
+      ts.map((t) => {
+        if (t.id === id) {
+          const task = { ...t, ...partial };
+          persistLocal(task);
+          return task;
+        } else {
+          return t;
+        }
+      })
+    );
   }
 
   return { tasks, updateTask, deleteTask, appendTask };
