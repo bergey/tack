@@ -38,7 +38,7 @@ export function useTask(
     tasksDB.then((db) => {
       db.get("tasks", id).then(setTask);
     });
-  });
+  }, [id]);
 
   async function updateTask(partial: Partial<Task>) {
     let t = { ...task, ...partial };
@@ -71,7 +71,7 @@ export function useTaskList(): TaskList {
       );
       setTasks(ts);
     })();
-  });
+  }, []);
 
   async function deleteTask(id: TaskId) {
     setTasks(tasks.filter((t) => t.id !== id));
