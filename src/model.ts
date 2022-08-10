@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { tasksDB, randomTaskId, TaskId } from "./migrations";
+import { rateLimitIndexed } from "./util";
 // TODO reexport TaskId
 
 export interface Task {
@@ -28,9 +29,11 @@ export function emptyTask(): Task {
   return emptyTaskWithId(randomTaskId());
 }
 
-function persistLocal(task: Task) {
-  tasksDB.then((db) => db.put("tasks", task));
-}
+const persistLocal = rateLimitIndexed(
+  2000, // milliseconds
+  (t) => t.id,
+  (task: Task) => tasksDB.then((db) => db.put("tasks", task))
+);
 
 export function useTask(
   id: TaskId
