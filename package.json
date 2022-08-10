@@ -6,13 +6,11 @@
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
-    "bfj": "^7.0.2",
     "idb": "^7.0.2",
     "identity-obj-proxy": "^3.0",
     "preact": "^10.10.1",
     "preact-router": "^3.0",
     "prompts": "^2.4.2",
-    "react-app-polyfill": "^3.0.0",
     "resolve": "^1.20.0",
     "semver": "^7.3.5",
     "tailwindcss": "^3.0.2",
@@ -21,9 +19,6 @@
   "scripts": {
     "start": "PORT=8080 yarn parcel public/index.html",
     "build": "yarn parcel build public/index.html"
-  },
-  "eslintConfig": {
-    "extends": ["react-app"]
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
@@ -34,6 +29,8 @@
     ]
   },
   "devDependencies": {
+    "@parcel/compressor-brotli": "^2.7.0",
+    "@parcel/compressor-gzip": "^2.7.0",
     "@parcel/packager-raw-url": "2.7.0",
     "@parcel/transformer-webmanifest": "2.7.0",
     "@testing-library/react": "^13.0.0",
