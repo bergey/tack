@@ -12,7 +12,7 @@ export function rateLimit(delay: number, f: () => any) {
       if (pending !== null) {
         clearTimeout(pending);
       }
-      pending = window.setTimeout(f(), delay - elapsed);
+      pending = window.setTimeout(f, delay - elapsed);
     }
   }
 
@@ -39,7 +39,7 @@ export function rateLimitIndexed<Index, A>(
         clearTimeout(p);
       }
       const elapsed = now - lastT;
-      pending.set(ix(a), window.setTimeout(f(a), delay - elapsed));
+      pending.set(ix(a), window.setTimeout(f, delay - elapsed, a));
     }
   }
 
