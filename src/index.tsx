@@ -1,7 +1,7 @@
 import { render } from "preact";
 
 import "./index.css";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+// import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
 import Router from "preact-router";
 
@@ -17,7 +17,7 @@ render(
   document.getElementById("root")
 );
 
-serviceWorkerRegistration.register();
+// serviceWorkerRegistration.register();
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))
