@@ -6402,7 +6402,7 @@ preact-router@^3.0:
   resolved "https://artifactory.infra.braze.com/artifactory/api/npm/npm-proxy/preact-router/-/preact-router-3.2.1.tgz#c7d12d8fc7a60bfbe5cadf23a234551bec783468"
   integrity sha512-KEN2VN1DxUlTwzW5IFkF13YIA2OdQ2OvgJTkQREF+AA2NrHRLaGbB68EjS4IeZOa1shvQ1FvEm3bSLta4sXBhg==
 
-preact@^10.0.0:
+preact@^10.10.1:
   version "10.10.1"
   resolved "https://artifactory.infra.braze.com/artifactory/api/npm/npm-proxy/preact/-/preact-10.10.1.tgz#df67e4348f50fc6ad2e11e813553f15c6543176b"
   integrity sha512-cXljG59ylGtSLismoLojXPAGvnh2ipQr3BYz9KZQr+1sdASCT+sR/v8dSMDS96xGCdtln2wHfAHCnLJK+XcBNg==

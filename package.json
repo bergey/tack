@@ -9,7 +9,7 @@
     "bfj": "^7.0.2",
     "idb": "^7.0.2",
     "identity-obj-proxy": "^3.0",
-    "preact": "^10.0.0",
+    "preact": "^10.10.1",
     "preact-router": "^3.0",
     "prompts": "^2.4.2",
     "react-app-polyfill": "^3.0.0",
