@@ -10,6 +10,10 @@ export interface Task {
   description: string;
 }
 
+export type PartialTask = {
+  [Property in keyof Task as Exclude<Property, "id">]+?: Task[Property];
+};
+
 // Task wraps TaskData, updates the IndexedDB copy every time a field is updated
 export function emptyTaskWithId(id: TaskId): Task {
   return {
@@ -28,11 +32,9 @@ function persistLocal(task: Task) {
   tasksDB.then((db) => db.put("tasks", task));
 }
 
-// TODO partial should not include id, because we should not allow changing the id
-
 export function useTask(
   id: TaskId
-): [Task, (partial: Partial<Task>) => Promise<void>] {
+): [Task, (partial: PartialTask) => Promise<void>] {
   const [task, setTask] = useState(emptyTaskWithId("placeholder" as TaskId));
   useEffect(() => {
     tasksDB.then((db) => {
@@ -40,7 +42,7 @@ export function useTask(
     });
   }, [id]);
 
-  async function updateTask(partial: Partial<Task>) {
+  async function updateTask(partial: PartialTask) {
     let t = { ...task, ...partial };
     setTask(t);
     await persistLocal(t);
@@ -53,7 +55,7 @@ export function useTask(
 // action after the change has been persisted to local disk.
 export interface TaskList {
   tasks: Task[];
-  updateTask: (id: TaskId, partial: Partial<Task>) => Promise<void>;
+  updateTask: (id: TaskId, partial: PartialTask) => Promise<void>;
   deleteTask: (id: TaskId) => Promise<void>;
   appendTask: () => Promise<Task>;
 }
@@ -102,7 +104,7 @@ export function useTaskList(): TaskList {
     return t;
   }
 
-  async function updateTask(id: TaskId, partial: Partial<Task>) {
+  async function updateTask(id: TaskId, partial: PartialTask) {
     setTasks((ts) =>
       ts.map((t) => {
         if (t.id === id) {
