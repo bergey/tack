@@ -1,27 +1,22 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import { render } from "preact";
+
 import "./index.css";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Router from "preact-router";
 
 import TaskList from "./routes/TaskList";
 import TaskDetail from "./routes/Detail";
 
-const root = ReactDOM.createRoot(
-  document.getElementById("root") as HTMLElement
-);
-
-root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<TaskList />} />
-        <Route path="detail/:taskId" element={<TaskDetail />} />
-        <Route path="*" element={<p>no route matched</p>} />
-      </Routes>
-    </BrowserRouter>
-  </React.StrictMode>
+render(
+  <Router>
+    <Routes>
+      <TaskList path="/" />
+      <TaskDetail path="detail/:taskId" />
+      <p default>no route matched</p>
+    </Routes>
+  </Router>,
+  document.body
 );
 
 serviceWorkerRegistration.register();

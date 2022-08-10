@@ -3,7 +3,7 @@ import {
   faTrash,
   faArrowUpRightFromSquare,
 } from "@fortawesome/free-solid-svg-icons";
-import { Link } from "react-router-dom";
+import { Link } from "preact-router/match";
 
 import { Task, useTaskList } from "../model";
 import "../App.css";
@@ -32,7 +32,7 @@ export default function TaskList() {
             <button onClick={() => deleteTask(t.id)} aria-label="delete">
               <FontAwesomeIcon icon={faTrash} />
             </button>
-            <Link to={`/detail/${t.id}`}>
+            <Link href={`/detail/${t.id}`}>
               <FontAwesomeIcon icon={faArrowUpRightFromSquare} size="xs" />
             </Link>
           </li>
