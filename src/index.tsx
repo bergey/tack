@@ -10,13 +10,11 @@ import TaskDetail from "./routes/Detail";
 
 render(
   <Router>
-    <Routes>
-      <TaskList path="/" />
-      <TaskDetail path="detail/:taskId" />
-      <p default>no route matched</p>
-    </Routes>
+    <TaskList path="/" />
+    <TaskDetail path="detail/:taskId" />
+    <p default>no route matched</p>
   </Router>,
-  document.body
+  document.getElementById("root")
 );
 
 serviceWorkerRegistration.register();

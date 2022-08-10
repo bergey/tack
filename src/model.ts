@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "preact/hooks";
 
 import { tasksDB, randomTaskId, TaskId } from "./migrations";
 import { rateLimitIndexed } from "./util";
