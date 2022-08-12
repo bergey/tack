@@ -1,7 +1,7 @@
 :root {
-  --bright-teal: #299;
-  --dark-teal: #055;
-  --light-green: #efd;
+  --bright-teal: #299; /* lch(57.2% 33.7 197) */
+  --dark-teal: rgb(0.87% 32.3% 32.4%); /* lch(31% 23 197) */
+  --light-green: rgb(58.9% 100% 100%); /* lch(94% 33.7 197) */
   --gray: #282c34;
 }
 
