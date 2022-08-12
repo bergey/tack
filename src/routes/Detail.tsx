@@ -9,11 +9,23 @@ export default function TaskDetail({ taskId, ...props }) {
     task && (
       <>
         <h1>{task.title}</h1>
-        <input
-          type="text"
+        <div id="metadata">
+          <input
+            type="checkbox"
+            checked={task.checked}
+            onChange={(ev) => updateTask({ checked: ev.target.checked })}
+          ></input>
+          <input
+            type="date"
+            value={task.date || ""}
+            onChange={(ev) => updateTask({ date: ev.target.value })}
+          ></input>
+          <button onClick={() => updateTask({ date: null })}>unschedule</button>
+        </div>
+        <textarea
           value={task.description}
           onChange={(ev) => updateTask({ description: ev.target.value })}
-        ></input>
+        ></textarea>
       </>
     )
   );

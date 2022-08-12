@@ -8,6 +8,7 @@ export interface Task {
   id: TaskId;
   title: string;
   checked: boolean;
+  date?: date;
   description: string;
 }
 

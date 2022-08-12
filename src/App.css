@@ -49,14 +49,34 @@ button:hover {
   background-color: var(--bright-teal);
 }
 
+textarea,
 input[type="text"] {
   background-color: transparent;
   border-width: 0;
   color: var(--light-green);
 }
 
+textarea:focus,
 input[type="text"]:focus {
   background-color: var(--dark-teal);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 100%;
+}
+
+textarea {
+  width: 100%;
+  background-color: transparent;
+}
+
+input[type="date"] {
+  color: inherit;
+  background-color: transparent;
 }
 
 a {
