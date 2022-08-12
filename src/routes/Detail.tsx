@@ -2,7 +2,7 @@ import { TaskId } from "../migrations";
 import { useTask } from "../model";
 import "../App.css";
 
-export default function TaskDetail({ taskId: TaskId }) {
+export default function TaskDetail({ taskId, ...props }) {
   const [task, updateTask] = useTask(taskId);
 
   return (
