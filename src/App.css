@@ -12,7 +12,8 @@ h1 {
 
 body {
   background-color: var(--gray);
-  font-size: calc(10px + 2vmin);
+  /* 14pt at desktop vmin~1000, 10pt on iPhone vmin~500*/
+  font-size: clamp(10px, calc(5px + 1vmin), 14px);
   color: var(--light-green);
 }
 
@@ -39,6 +40,7 @@ a.button {
   background-color: transparent;
   border-width: 0;
   border-radius: 0.3em;
+  font-size: inherit;
 }
 
 a.button {
@@ -59,6 +61,10 @@ a.button:hover {
   background-color: var(--bright-teal);
 }
 
+input {
+  font-size: inherit;
+}
+
 textarea,
 input[type="text"] {
   background-color: transparent;
@@ -76,7 +82,6 @@ input,
 select,
 textarea {
   font-family: inherit;
-  font-size: 100%;
 }
 
 textarea {
