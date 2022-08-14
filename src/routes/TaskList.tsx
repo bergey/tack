@@ -6,7 +6,6 @@ import {
 import { Link } from "preact-router/match";
 
 import { Task, useTaskList } from "../model";
-import "../App.css";
 
 export default function TaskList() {
   const { tasks, updateTask, deleteTask, appendTask } = useTaskList();
