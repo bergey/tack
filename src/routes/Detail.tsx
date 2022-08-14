@@ -7,7 +7,7 @@ export default function TaskDetail({ taskId, ...props }) {
 
   return (
     task && (
-      <>
+      <div class="column">
         <h1>{task.title}</h1>
         <div id="metadata">
           <input
@@ -26,7 +26,7 @@ export default function TaskDetail({ taskId, ...props }) {
           value={task.description}
           onChange={(ev) => updateTask({ description: ev.target.value })}
         ></textarea>
-      </>
+      </div>
     )
   );
 }

@@ -12,7 +12,7 @@ export default function TaskList() {
   const { tasks, updateTask, deleteTask, appendTask } = useTaskList();
 
   return (
-    <div className="App">
+    <>
       <h1>Things to do:</h1>
       <ul className="checklist">
         {tasks.map((t: Task) => (
@@ -41,6 +41,6 @@ export default function TaskList() {
       <button className="primary" onClick={() => appendTask()}>
         New Task
       </button>
-    </div>
+    </>
   );
 }

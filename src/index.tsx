@@ -1,19 +1,25 @@
 import { render } from "preact";
+import Router from "preact-router";
+import { Link } from "preact-router/match";
+
+import reportWebVitals from "./reportWebVitals";
+// import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 import "./index.css";
-// import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import reportWebVitals from "./reportWebVitals";
-import Router from "preact-router";
-
 import TaskList from "./routes/TaskList";
 import TaskDetail from "./routes/Detail";
 
 render(
-  <Router>
-    <TaskList path="/" />
-    <TaskDetail path="detail/:taskId" />
-    <p default>no route matched</p>
-  </Router>,
+  <div className="App">
+    <Router>
+      <TaskList path="/" />
+      <TaskDetail path="detail/:taskId" />
+      <p default>no route matched</p>
+    </Router>
+    <div id="nav">
+      <Link href="/">Tasks</Link>
+    </div>
+  </div>,
   document.getElementById("root")
 );
 

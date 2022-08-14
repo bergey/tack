@@ -25,6 +25,10 @@ body {
   justify-content: center;
 }
 
+div.column {
+  max-width: 40em;
+}
+
 ul.checklist {
   list-style-type: none;
 }
