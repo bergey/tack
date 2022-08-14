@@ -29,11 +29,16 @@ ul.checklist {
   list-style-type: none;
 }
 
-button {
+button,
+a.button {
   color: var(--dark-teal);
   background-color: transparent;
   border-width: 0;
   border-radius: 0.3em;
+}
+
+a.button {
+  padding: 0 0.2em;
 }
 
 button.primary {
@@ -44,7 +49,8 @@ button.primary {
   padding: 0.4em 0.8em;
 }
 
-button:hover {
+button:hover,
+a.button:hover {
   color: var(--gray);
   background-color: var(--bright-teal);
 }

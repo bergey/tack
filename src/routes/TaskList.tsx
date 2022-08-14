@@ -32,7 +32,7 @@ export default function TaskList() {
             <button onClick={() => deleteTask(t.id)} aria-label="delete">
               <FontAwesomeIcon icon={faTrash} />
             </button>
-            <Link href={`/detail/${t.id}`}>
+            <Link href={`/detail/${t.id}`} class="button">
               <FontAwesomeIcon icon={faArrowUpRightFromSquare} size="xs" />
             </Link>
           </li>
