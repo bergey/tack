@@ -40,6 +40,17 @@ body {
   justify-content: center;
 }
 
+#nav {
+  width: 100%;
+  max-width: 30em;
+  display: flex;
+  flex-direction: row;
+}
+
+#nav > a {
+  flex: 1;
+}
+
 div.column {
   max-width: 40em;
 }
@@ -87,6 +98,7 @@ input[type="text"] {
 }
 
 textarea:focus,
+input[type="text"].primary,
 input[type="text"]:focus {
   background-color: var(--dark-teal);
 }
@@ -109,5 +121,10 @@ input[type="date"] {
 }
 
 a {
-  color: var(--dark-teal);
+  color: var(--light-green);
+  text-decoration-line: none;
+}
+
+p {
+  margin: 0.5em;
 }

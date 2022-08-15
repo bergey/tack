@@ -45,3 +45,9 @@ export function rateLimitIndexed<Index, A>(
 
   return limited;
 }
+
+export function isoDate(date: date) {
+  const mm = date.getMonth().toString().padStart(2, "0");
+  const dd = date.getDate().toString().padStart(2, "0");
+  return `${date.getFullYear()}-${mm}-${dd}`;
+}

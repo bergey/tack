@@ -8,16 +8,28 @@ import reportWebVitals from "./reportWebVitals";
 import "./App.css";
 import TaskList from "./routes/TaskList";
 import TaskDetail from "./routes/Detail";
+import Schedule from "./routes/Schedule";
+import Search from "./routes/Search";
 
 render(
   <div className="App">
     <Router>
       <TaskList path="/" />
       <TaskDetail path="detail/:taskId" />
+      <Schedule path="/schedule" />
+      <Search path="/search" />
       <p default>no route matched</p>
     </Router>
     <div id="nav">
-      <Link href="/">Tasks</Link>
+      <Link href="/" class="button">
+        Tasks
+      </Link>
+      <Link href="/schedule" class="button">
+        Schedule
+      </Link>
+      <Link href="/search" class="button">
+        Search
+      </Link>
     </div>
   </div>,
   document.getElementById("root")
