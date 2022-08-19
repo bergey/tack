@@ -41,6 +41,7 @@ body {
 }
 
 #nav {
+  margin-top: 1em;
   width: 100%;
   max-width: 30em;
   display: flex;
@@ -49,6 +50,7 @@ body {
 
 #nav > a {
   flex: 1;
+  color: var(--bright-teal);
 }
 
 div.column {
