@@ -1,8 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faTrash,
-  faArrowUpRightFromSquare,
-} from "@fortawesome/free-solid-svg-icons";
 import { Link } from "preact-router/match";
 
 import { Task, useTaskList } from "../model";
@@ -29,10 +24,10 @@ export default function TaskList() {
               onChange={(ev) => updateTask(t.id, { title: ev.target.value })}
             ></input>
             <button onClick={() => deleteTask(t.id)} aria-label="delete">
-              <FontAwesomeIcon icon={faTrash} />
+              <i class="fa-solid fa-trash"></i>
             </button>
             <Link href={`/detail/${t.id}`} class="button">
-              <FontAwesomeIcon icon={faArrowUpRightFromSquare} size="xs" />
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
             </Link>
           </li>
         ))}

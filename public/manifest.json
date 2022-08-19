@@ -3,18 +3,18 @@
   "name": "todo list by Teal Labs",
   "icons": [
     {
-      "src": "teal.ico",
+      "src": "assets/teal.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     },
     {
-      "src": "teal192.png",
+      "src": "assets/teal192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "teal512.png",
+      "src": "assets/teal512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
