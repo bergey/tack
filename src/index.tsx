@@ -1,9 +1,10 @@
+import { manifest, version } from "@parcel/service-worker";
+
 import { render } from "preact";
 import Router from "preact-router";
 import { Link } from "preact-router/match";
 
 import reportWebVitals from "./reportWebVitals";
-// import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 
 import "./App.css";
 import TaskList from "./routes/TaskList";
@@ -35,7 +36,29 @@ render(
   document.getElementById("root")
 );
 
-// serviceWorkerRegistration.register();
+async function registerServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        new URL("../public/service-worker.ts", import.meta.url),
+        {
+          scope: "/",
+          type: "module",
+        }
+      );
+      if (registration.installing) {
+        console.log("Service worker installing");
+      } else if (registration.waiting) {
+        console.log("Service worker installed");
+      } else if (registration.active) {
+        console.log("Service worker active");
+      }
+    } catch (error) {
+      console.error(`Registration failed with ${error}`);
+    }
+  }
+}
+registerServiceWorker();
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

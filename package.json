@@ -6,6 +6,7 @@
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
     "@fortawesome/free-solid-svg-icons": "^6.1.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
+    "@parcel/service-worker": "^2.7.0",
     "idb": "^7.0.2",
     "preact": "^10.10.1",
     "preact-router": "^3.0",
