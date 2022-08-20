@@ -1,3 +1,6 @@
+@import "../public/assets/fontawesome/solid.css";
+@import "../public/assets/fontawesome/fontawesome.subset.css";
+
 :root {
   --bright-teal: #299; /* lch(57.2% 33.7 197) */
   --dark-teal: rgb(0.87% 32.3% 32.4%); /* lch(31% 23 197) */

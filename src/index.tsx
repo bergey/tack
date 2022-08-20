@@ -6,7 +6,6 @@ import { Link } from "preact-router/match";
 
 import reportWebVitals from "./reportWebVitals";
 
-import "./App.css";
 import TaskList from "./routes/TaskList";
 import TaskDetail from "./routes/Detail";
 import Schedule from "./routes/Schedule";
