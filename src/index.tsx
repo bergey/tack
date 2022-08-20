@@ -11,29 +11,41 @@ import TaskDetail from "./routes/Detail";
 import Schedule from "./routes/Schedule";
 import Search from "./routes/Search";
 
-render(
-  <div className="App">
-    <Router>
-      <TaskList path="/" />
-      <TaskDetail path="detail/:taskId" />
-      <Schedule path="/schedule" />
-      <Search path="/search" />
-      <p default>no route matched</p>
-    </Router>
-    <div id="nav">
-      <Link href="/" class="button">
-        Tasks
-      </Link>
-      <Link href="/schedule" class="button">
-        Schedule
-      </Link>
-      <Link href="/search" class="button">
-        Search
-      </Link>
+interface NavLinkProps {
+  href: string;
+  text: string;
+}
+
+function NavLink({ href, text }: NavLinkProps) {
+  return (
+    <Link href={href} class="button" activeClassName="active">
+      {text}
+    </Link>
+  );
+}
+
+function App() {
+  return (
+    <div className="App">
+      <div class="page">
+        <Router>
+          <TaskList path="/" />
+          <TaskDetail path="/detail/:taskId" />
+          <Schedule path="/schedule" />
+          <Search path="/search" />
+          <p default>no route matched</p>
+        </Router>
+      </div>
+      <div id="nav">
+        <NavLink href="/" text="Tasks" />
+        <NavLink href="/schedule" text="Schedule" />
+        <NavLink href="/search" text="Search" />
+      </div>
     </div>
-  </div>,
-  document.getElementById("root")
-);
+  );
+}
+
+render(App(), document.getElementById("root"));
 
 async function registerServiceWorker() {
   if ("serviceWorker" in navigator) {
