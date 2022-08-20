@@ -6,6 +6,7 @@
   --dark-teal: rgb(0.87% 32.3% 32.4%); /* lch(31% 23 197) */
   --light-green: rgb(58.9% 100% 100%); /* lch(94% 33.7 197) */
   --gray: #282c34;
+  font-size: clamp(12px, calc(5px + 1vmin), 14px);
 }
 
 body {
@@ -30,7 +31,6 @@ h1 {
 body {
   background-color: var(--gray);
   /* 14pt at desktop vmin~1000, 10pt on iPhone vmin~500*/
-  font-size: clamp(10px, calc(5px + 1vmin), 14px);
   color: var(--light-green);
 }
 
@@ -44,7 +44,8 @@ body {
 }
 
 #nav {
-  margin-top: 1em;
+  flex: 0;
+  margin: 1em;
   width: 100%;
   max-width: 30em;
   display: flex;
@@ -54,6 +55,15 @@ body {
 #nav > a {
   flex: 1;
   color: var(--bright-teal);
+  font-size: 1.44rem;
+}
+
+#nav > a.active {
+  font-weight: bold;
+}
+
+.page {
+  flex: 1;
 }
 
 div.column {
@@ -85,10 +95,20 @@ button.primary {
   padding: 0.4em 0.8em;
 }
 
-button:hover,
-a.button:hover {
-  color: var(--gray);
-  background-color: var(--bright-teal);
+@media (hover: hover) {
+  button:hover,
+  a.button:hover {
+    color: var(--gray);
+    background-color: var(--bright-teal);
+  }
+}
+
+@media (hover: none) {
+  button:active,
+  a.button:active {
+    color: var(--gray);
+    background-color: var(--bright-teal);
+  }
 }
 
 input {
@@ -132,4 +152,12 @@ a {
 
 p {
   margin: 0.5em;
+}
+
+.pageContent {
+  flex: 1;
+}
+
+input.page {
+  flex: 0;
 }
