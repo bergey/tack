@@ -38,7 +38,7 @@ export default function Search() {
         type="text"
         class="primary page"
         value={search}
-        onChange={(ev) => setSearch(ev.target.value)}
+        onInput={(ev) => setSearch(ev.target.value)}
       ></input>
     </>
   );
