@@ -27,7 +27,7 @@ export default function Search() {
   return (
     <>
       {/* div so search retains focus https://github.com/preactjs/preact/issues/3242 */}
-      <div>
+      <div class="pageContent">
         {matching.map((t) => (
           <p key={t.id}>
             <Link href={`/detail/${t.id}`}>{t.title}</Link>
@@ -36,7 +36,7 @@ export default function Search() {
       </div>
       <input
         type="text"
-        class="primary"
+        class="primary page"
         value={search}
         onChange={(ev) => setSearch(ev.target.value)}
       ></input>

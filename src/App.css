@@ -63,6 +63,8 @@ body {
 
 .page {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 div.column {
@@ -157,6 +159,6 @@ p {
   flex: 1;
 }
 
-input.page {
+.page > input {
   flex: 0;
 }
