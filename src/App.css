@@ -159,6 +159,7 @@ p {
   flex: 1;
 }
 
-.page > input {
+.bottom {
   flex: 0;
+  margin-bottom: 1em;
 }

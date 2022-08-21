@@ -8,7 +8,7 @@ export default function TaskList() {
   return (
     <>
       <h1>Things to do:</h1>
-      <ul className="checklist">
+      <ul className="checklist pageContent">
         {tasks.map((t: Task) => (
           <li key={t.id}>
             <input
@@ -32,7 +32,7 @@ export default function TaskList() {
           </li>
         ))}
       </ul>
-      <button className="primary" onClick={() => appendTask()}>
+      <button className="primary bottom" onClick={() => appendTask()}>
         New Task
       </button>
     </>

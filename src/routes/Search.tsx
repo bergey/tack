@@ -36,7 +36,7 @@ export default function Search() {
       </div>
       <input
         type="text"
-        class="primary page"
+        class="primary bottom"
         value={search}
         onInput={(ev) => setSearch(ev.target.value)}
       ></input>
