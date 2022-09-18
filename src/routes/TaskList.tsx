@@ -1,6 +1,7 @@
 import { Link } from "preact-router/match";
 
-import { Task, useProject } from "../model";
+import { Task } from "../model";
+import { useProject } from "../hooks";
 
 export default function TaskList() {
   const { tasks, updateTask, deleteTask, appendTask } = useProject();
