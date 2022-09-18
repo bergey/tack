@@ -1,126 +1,135 @@
 import { useEffect, useState } from "preact/hooks";
+import * as Automerge from 'automerge';
 
 import { tasksDB, randomTaskId, TaskId } from "./migrations";
 import { rateLimitIndexed } from "./util";
 // TODO reexport TaskId
 
+export type Status = "todo" | "wip" | "done" | "blocked" | "cancel";
+
 export interface Task {
   id: TaskId;
   title: string;
-  checked: boolean;
-  date?: date;
   description: string;
+  status?: Status; // optional to allow notes
+  priority?: number; // default 3 until that's configurable
+  scheduled?: date; // TODO recurring
+  due?: date;
+  parent?: TaskId;
+  children: TaskId[];
+  tags: string[];
+  // clocked: Interval[];
+}
+
+export interface Project {
+  top: TaskId[];
+  tasks: Automerge.Table<Task>;
 }
 
 export type PartialTask = {
   [Property in keyof Task as Exclude<Property, "id">]+?: Task[Property];
 };
 
-// Task wraps TaskData, updates the IndexedDB copy every time a field is updated
-export function emptyTaskWithId(id: TaskId): Task {
+export function emptyProject() {
+  return Automerge.change<Project>(Automerge.init(), 'init schema', (p: Project) => {
+    p.top = [];
+    p.tasks = new Automerge.Table();
+  })
+}
+
+// for testing, make this separate from addEmptyTask
+export function emptyTask(): Task {
   return {
-    id: id,
     title: "",
-    checked: false,
     description: "",
+    children: [],
+    tags: [],
+    // clocked: []  // TODO datetime, interval
   };
 }
 
-export function emptyTask(): Task {
-  return emptyTaskWithId(randomTaskId());
-}
+export function useTask(taskId: TaskId) : [Task, (update: (old: Task) => Task) => Promise<void>] {
+  const [project, setProject] = useContext(GlobalProject);
+  const task = project.tasks.byId(taskId);
+  // TODO memoize children here
 
-const persistLocal = rateLimitIndexed(
-  2000, // milliseconds
-  (t) => t.id,
-  (task: Task) => tasksDB.then((db) => db.put("tasks", task))
-);
-
-export function useTask(
-  id: TaskId
-): [Task, (partial: PartialTask) => Promise<void>] {
-  const [task, setTask] = useState(emptyTaskWithId("placeholder" as TaskId));
-  useEffect(() => {
-    tasksDB.then((db) => {
-      db.get("tasks", id).then(setTask);
-    });
-  }, [id]);
-
-  async function updateTask(partial: PartialTask) {
-    let t = { ...task, ...partial };
-    setTask(t);
-    await persistLocal(t);
+  async function updateTask(update: (old: Task) => Task) {
+    const newProject = Automerge.change<Project>(project, (p: Project) => update(p.tasks.byId(taskId)))
+    setProject(newProject);
+    await persistProject(newProject);
   }
 
   return [task, updateTask];
 }
 
-// list of tasks and operations thereon.  The promises allow taking some other
-// action after the change has been persisted to local disk.
-export interface TaskList {
-  tasks: Task[];
-  updateTask: (id: TaskId, partial: PartialTask) => Promise<void>;
-  deleteTask: (id: TaskId) => Promise<void>;
+export interface ProjectActions {
+  taskList: Task[];
+  updateTask: (taskId: TaskId, update: (old: Task) => Task) => Promise<void>;
+  deleteTask: (taskId: TaskId) => Promise<void>;
   appendTask: () => Promise<Task>;
 }
 
-export function useTaskList(): TaskList {
-  const [tasks, setTasks] = useState<Task[]>([]);
+const persistProject = rateLimit(2000, // milliseconds
+  (p: Project) => tasksDB.then((db) => db.put("projects", p, "global"))
+  // TODO later: persist each change & after some time / number of commit saves, persist the full state
+)
+
+const GlobalProject = createContext(emptyProject());
+
+export function ProjectProvider({children}) {
+  const [project, setProject] = useState(emptyProject());
 
   useEffect(() => {
-    (async () => {
-      const tx = (await tasksDB).transaction(["list-items", "tasks"]);
-      const taskKeys = await tx.objectStore("list-items").get("order");
-      const tasksStore = tx.objectStore("tasks");
-      const ts = await Promise.all(
-        taskKeys.map((k: TaskId) => tasksStore.get(k))
-      );
-      setTasks(ts);
-    })();
-  }, []);
+    tasksDB.then((db) => db.get("projects", "global").then(setProject));
+    // TODO later, try loading from network if we don't have a Project on disk yet
+  }, [setProject]);
 
-  async function deleteTask(id: TaskId) {
-    setTasks(tasks.filter((t) => t.id !== id));
-    const tx = (await tasksDB).transaction(
-      ["list-items", "tasks"],
-      "readwrite"
+  return (
+    <GlobalProject.Provider value={[project, setProject]}>
+      {children}
+    </GlobalProject.Provider>
     );
-    const order = await tx.objectStore("list-items").get("order");
-    await tx.objectStore("list-items").put(
-      order.filter((tid: TaskId) => tid !== id),
-      "order"
-    );
-    await tx.objectStore("tasks").delete(id);
-    await tx.done;
+}
+
+// All tasks, and the list of top-level tasks
+export function useProject() : ProjectActions {
+  const [project, setProject] = useContext(GlobalProject);
+  const taskList = useMemo(() => project.top.map((taskId) => p.tasks.byId(taskId)), project)
+
+  async function deleteTask(taskId: TaskId) {
+    const newProject = Automerge.change<Project>(project, (p: Project) => {
+      // delete from top
+      const ix = p.top.find(tid => tid === taskId);
+      if (ix !== undefined) {
+        p.top.deleteAt(ix);
+      }
+
+     p.tasks.remove(taskId);
+    })
+
+    setProject(newProject);
+    await persistProject(newProject);
   }
 
   async function appendTask() {
-    let t = emptyTask();
-    setTasks((ts) => [...ts, t]);
-    const tx = (await tasksDB).transaction(
-      ["list-items", "tasks"],
-      "readwrite"
-    );
-    await tx.objectStore("tasks").put(t); // persistLocal, but in tx
-    const order = await tx.objectStore("list-items").get("order");
-    order.push(t.id);
-    await tx.objectStore("list-items").put(order, "order");
-    return t;
+    const newProject = Automerge.change<Project>(project, (p: Project) => {
+      const taskId = p.tasks.add(emptyTask());
+      p.top.push(taskId);
+    })
+
+    setProject(newProject);
+    await persistProject(newProject);
   }
 
-  async function updateTask(id: TaskId, partial: PartialTask) {
-    setTasks((ts) =>
-      ts.map((t) => {
-        if (t.id === id) {
-          const task = { ...t, ...partial };
-          persistLocal(task);
-          return task;
-        } else {
-          return t;
-        }
-      })
-    );
-  }
+ async function updateTask(taskId: TaskId, update: (old: Task) => Task) {
+   const newProject = Automerge.change<Project>(project, (p: Project) => {
+     const task = p.tasks.byId(taskId);
+     update(task);
+   })
 
-  return { tasks, updateTask, deleteTask, appendTask };
+   setProject(newProject);
+   await persistProject(newProject);
+ }
+
+  return {taskList, deleteTask, appendTask, updateTask}
 }

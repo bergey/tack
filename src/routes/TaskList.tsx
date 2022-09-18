@@ -1,27 +1,26 @@
 import { Link } from "preact-router/match";
 
-import { Task, useTaskList } from "../model";
+import { Task, useProject } from "../model";
 
 export default function TaskList() {
-  const { tasks, updateTask, deleteTask, appendTask } = useTaskList();
+  const { tasks, updateTask, deleteTask, appendTask } = useProject();
 
   return (
     <>
       <h1>Things to do:</h1>
-      <ul className="checklist pageContent">
+      <ul class="checklist pageContent">
         {tasks.map((t: Task) => (
           <li key={t.id}>
             <input
               type="checkbox"
-              checked={t.checked}
+              checked={t.status === "done"}
               onChange={(ev) =>
-                updateTask(t.id, { checked: ev.target.checked })
-              }
+                updateTask(t.id, (t) => t.status = ev.target.checked  ? "done" : "todo")}
             ></input>
             <input
               type="text"
               value={t.title}
-              onChange={(ev) => updateTask(t.id, { title: ev.target.value })}
+              onChange={(ev) => updateTask(t.id, (t) => t.title = ev.target.value)}
             ></input>
             <button onClick={() => deleteTask(t.id)} aria-label="delete">
               <i class="fa-solid fa-trash"></i>

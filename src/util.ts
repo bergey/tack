@@ -1,8 +1,8 @@
-export function rateLimit(delay: number, f: () => any) {
+export function rateLimit<A>(delay: number, f: (a: A) => any) {
   let lastTime: ReturnType<typeof performance.now> = 0;
   let pending: number | null = null;
 
-  function limited() {
+  function limited(a: A) {
     const now = performance.now();
     const elapsed = now - lastTime;
     if (elapsed >= delay) {
@@ -12,7 +12,7 @@ export function rateLimit(delay: number, f: () => any) {
       if (pending !== null) {
         clearTimeout(pending);
       }
-      pending = window.setTimeout(f, delay - elapsed);
+      pending = window.setTimeout(f, delay - elapsed, a);
     }
   }
 

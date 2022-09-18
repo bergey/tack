@@ -1,11 +1,10 @@
-import { manifest, version } from "@parcel/service-worker";
-
 import { render } from "preact";
 import Router from "preact-router";
 import { Link } from "preact-router/match";
 
 import reportWebVitals from "./reportWebVitals";
 
+import {ProjectProvider} from "./model"
 import TaskList from "./routes/TaskList";
 import TaskDetail from "./routes/Detail";
 import Schedule from "./routes/Schedule";
@@ -27,20 +26,22 @@ function NavLink({ href, text }: NavLinkProps) {
 function App() {
   return (
     <div className="App">
-      <div class="page">
-        <Router>
-          <TaskList path="/" />
-          <TaskDetail path="/detail/:taskId" />
-          <Schedule path="/schedule" />
-          <Search path="/search" />
-          <p default>no route matched</p>
-        </Router>
-      </div>
-      <div id="nav">
-        <NavLink href="/" text="Tasks" />
-        <NavLink href="/schedule" text="Schedule" />
-        <NavLink href="/search" text="Search" />
-      </div>
+        <ProjectProvider>
+            <div class="page">
+                <Router>
+                    <TaskList path="/" />
+                    <TaskDetail path="/detail/:taskId" />
+                    <Schedule path="/schedule" />
+                    <Search path="/search" />
+                    <p default>no route matched</p>
+                </Router>
+            </div>
+            <div id="nav">
+                <NavLink href="/" text="Tasks" />
+                <NavLink href="/schedule" text="Schedule" />
+                <NavLink href="/search" text="Search" />
+            </div>
+        </ProjectProvider>
     </div>
   );
 }
