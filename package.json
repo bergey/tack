@@ -12,7 +12,8 @@
   },
   "scripts": {
     "start": "PORT=8080 yarn parcel public/index.html",
-    "build": "yarn parcel build public/index.html"
+    "build": "yarn parcel build public/index.html",
+    "check": "tsc --noEmit"
   },
   "browserslist": {
     "production": [

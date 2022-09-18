@@ -1,13 +1,14 @@
-import { createContext } from "preact";
-import { useEffect, useState, useContext } from "preact/hooks";
+import { createContext, ComponentChildren} from "preact";
+import { useEffect, useState, StateUpdater } from "preact/hooks";
+// import type { StateUpdater } from "preact/hooks";
 
 import { tasksDB} from "./migrations";
-import {emptyProject} from "./model";
+import {Project, emptyProject} from "./model";
 
 
-const GlobalProject = createContext(emptyProject());
+export const GlobalProject = createContext<[Project, StateUpdater<Project>]>([emptyProject(), () => {}]);
 
-export function ProjectProvider({children}) {
+export function ProjectProvider({children} : {children : ComponentChildren}) {
   const [project, setProject] = useState(emptyProject());
 
   useEffect(() => {

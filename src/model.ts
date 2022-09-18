@@ -1,27 +1,32 @@
 import * as Automerge from 'automerge';
 
-import { tasksDB, randomTaskId, TaskId } from "./migrations";
+import { tasksDB } from "./migrations";
 import { rateLimit } from "./util";
-// TODO reexport TaskId
+
+export type TaskId = string & { readonly __tag: unique symbol };
 
 export type Status = "todo" | "wip" | "done" | "blocked" | "cancel";
 
 export interface Task {
-  id: TaskId;
   title: string;
   description: string;
   status?: Status; // optional to allow notes
   priority?: number; // default 3 until that's configurable
-  scheduled?: date; // TODO recurring
-  due?: date;
+  scheduled?: Date; // TODO recurring
+  due?: Date;
   parent?: TaskId;
   children: TaskId[];
   tags: string[];
   // clocked: Interval[];
 }
 
+export interface TaskEntity extends Task {
+  id: TaskId;
+}
+
 export interface Project {
-  top: TaskId[];
+  top: Automerge.List<TaskId>;
+  // top: TaskId[];
   tasks: Automerge.Table<Task>;
 }
 
