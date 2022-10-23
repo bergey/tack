@@ -7,7 +7,7 @@ export function rateLimit<A>(delay: number, f: (a: A) => any) {
     const elapsed = now - lastTime;
     if (elapsed >= delay) {
       lastTime = now;
-      f();
+      f(a);
     } else {
       if (pending !== null) {
         clearTimeout(pending);
@@ -46,7 +46,7 @@ export function rateLimitIndexed<Index, A>(
   return limited;
 }
 
-export function isoDate(date: date) {
+export function isoDate(date: Date) {
   const mm = date.getMonth().toString().padStart(2, "0");
   const dd = date.getDate().toString().padStart(2, "0");
   return `${date.getFullYear()}-${mm}-${dd}`;
