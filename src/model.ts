@@ -24,7 +24,7 @@ export interface Task {
   status?: Status; // optional to allow notes
   priority?: number; // default 3 until that's configurable
   scheduled?: Date; // TODO recurring
-  due?: Date;
+  due?: string; // Date
   parent?: TaskId;
   children: TaskId[];
   tags: string[];

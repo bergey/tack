@@ -4,7 +4,7 @@ import { Task, TaskEntity } from "../model";
 import { useProject } from "../hooks";
 
 export default function TaskList() {
-  const { taskList, updateTask, deleteTask, appendTask } = useProject();
+  const { taskList, updateTask, markDone, deleteTask, appendTask } = useProject();
 
   return (
     <>
@@ -15,11 +15,7 @@ export default function TaskList() {
             <input
               type="checkbox"
               checked={t.status === "done"}
-              onChange={(ev) =>
-                updateTask(t.id, (t: Task) => {
-                  t.status = ev.target.checked  ? "done" : "todo";
-                  return t
-              })}
+              onChange={(ev) => updateTask(t.id, (t: Task) => markDone(t.id, ev.target.checked))}
             ></input>
             <input
               type="text"

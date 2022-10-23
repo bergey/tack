@@ -4,18 +4,30 @@ import { useContext, useMemo } from "preact/hooks";
 import { Project, TaskId, Task, TaskEntity, emptyTask, persistProject, randomTaskId} from "./model";
 import {GlobalProject} from "./GlobalProject";
 
-export function useTask(taskId: TaskId) : [Task, (update: (old: Task) => Task) => Promise<void>] {
+export interface TaskActions {
+  task: Task;
+  updateTask(update: (old: Task) => void): Promise<void>;
+  markDone(done: boolean): Promise<void>;
+}
+
+export function useTask(taskId: TaskId) : TaskActions {
   const [project, setProject] = useContext(GlobalProject);
   const task = project.tasks[taskId];
   // TODO memoize children here
 
-  async function updateTask(update: (old: Task) => Task) {
+  async function updateTask(update: (old: Task) => void) {
     const newProject = Automerge.change<Project>(project, (p: Project) => update(p.tasks[taskId]))
     setProject(newProject);
     persistProject(newProject);
   }
 
-  return [task, updateTask];
+  async function markDone(done: boolean) {
+    updateTask((t: Task) => {
+      t.status = done ? "done" : "todo";
+    });
+  }
+
+  return {task, updateTask, markDone};
 }
 
 export interface ProjectActions {
@@ -23,6 +35,7 @@ export interface ProjectActions {
   updateTask: (taskId: TaskId, update: (old: Task) => Task) => Promise<void>;
   deleteTask: (taskId: TaskId) => Promise<void>;
   appendTask: () => Promise<Task>;
+  markDone(taskId: TaskId, done: boolean): Promise<void>;
 }
 
 // All tasks, and the list of top-level tasks
@@ -61,13 +74,19 @@ export function useProject() : ProjectActions {
 
  async function updateTask(taskId: TaskId, update: (old: Task) => Task) {
    const newProject = Automerge.change<Project>(project, (p: Project) => {
-     const task = p.tasks[taskId];
-     update(task);
+     update(p.tasks[taskId]);
    })
 
    setProject(newProject);
    persistProject(newProject);
  }
 
-  return {taskList, deleteTask, appendTask, updateTask}
+  async function markDone(taskId: TaskId, done: boolean) {
+    updateTask(taskId, (t: Task) => {
+      t.status = done ? "done" : "todo";
+      return t;
+    });
+  }
+
+  return {taskList, deleteTask, appendTask, updateTask, markDone}
 }
