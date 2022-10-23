@@ -1,3 +1,4 @@
+ import "preact/devtools";
 import { render } from "preact";
 import Router from "preact-router";
 import { Link } from "preact-router/match";
