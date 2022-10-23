@@ -54,7 +54,7 @@ export function emptyProject() {
 // for testing, make this separate from addEmptyTask
 export function emptyTask(): Task {
   return {
-    title: "",
+    title: "", // TODO Automerge.Text
     description: "",
     children: [],
     tags: [],
@@ -63,6 +63,6 @@ export function emptyTask(): Task {
 }
 
 export const persistProject = rateLimit(2000, // milliseconds
-  (p: Project) => tasksDB.then((db) => db.put("projects", p, "global"))
+  (p: Project) => tasksDB.then((db) => db.put("projects", Automerge.save(p), "global"))
   // TODO later: persist each change & after some time / number of commit saves, persist the full state
 )

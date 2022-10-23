@@ -1,6 +1,6 @@
+import * as Automerge from 'automerge';
 import { createContext, ComponentChildren} from "preact";
 import { useEffect, useState, StateUpdater } from "preact/hooks";
-// import type { StateUpdater } from "preact/hooks";
 
 import { tasksDB} from "./migrations";
 import {Project, emptyProject} from "./model";
@@ -12,8 +12,14 @@ export function ProjectProvider({children} : {children : ComponentChildren}) {
   const [project, setProject] = useState(emptyProject());
 
   useEffect(() => {
-    tasksDB.then((db) => db.get("projects", "global").then(setProject));
-    // TODO later, try loading from network if we don't have a Project on disk yet
+    (async () => {
+      const db = await tasksDB
+      const binary = await db.get("projects", "global")
+      if (binary !== undefined) {
+        setProject(Automerge.load(binary));
+      }
+      // TODO later, try loading from network if we don't have a Project on disk yet
+    })()
   }, [setProject]);
 
   return (
