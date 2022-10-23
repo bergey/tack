@@ -28,7 +28,7 @@ function App() {
   return (
     <div className="App">
         <ProjectProvider>
-            <div class="page">
+            <div className="page">
                 <Router>
                     <TaskList path="/" />
                     <TaskDetail path="/detail/:taskId" />
