@@ -2,12 +2,13 @@ import { useState } from "preact/hooks";
 import { Link } from "preact-router/match";
 import { useMemo } from "preact/hooks";
 
-import { Task, useTaskList } from "../model";
+import { Task } from "../model";
+import { useProject } from "../hooks";
 
 const whitespace = new RegExp("s+");
 
 export default function Search() {
-  const { tasks } = useTaskList();
+  const { taskList } = useProject();
   const [search, setSearch] = useState("");
 
   const searchWords = useMemo(
@@ -15,13 +16,9 @@ export default function Search() {
     [search]
   );
 
-  // every search word matches task somewhere
-  const matching = tasks.filter((t) =>
-    searchWords.reduce(
-      (acc, word) =>
-        acc && (t.title.includes(word) || t.description.includes(word)),
-      true
-    )
+  // every search word matches Task somewhere
+  const matching = taskList.filter((t) =>
+    searchWords.every((word) => (t.title.includes(word) || t.description.includes(word)))
   );
 
   return (
