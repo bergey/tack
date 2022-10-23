@@ -5,7 +5,7 @@
   --bright-teal: rgb(17.1% 63% 63%); /* lch(60% 34 197) */
   --dark-teal: rgb(0.87% 32.3% 32.4%); /* lch(31% 23 197) */
   --light-green: rgb(58.9% 100% 100%); /* lch(94% 33.7 197) */
-  --gray: rgb(15.2% 7.93% 18.4%); /* lch(10% 20 315) dark plum */
+  --plum: rgb(15.2% 7.93% 18.4%); /* lch(10% 20 315) dark plum */
   font-size: 16px;
 }
 
@@ -29,7 +29,7 @@ h1 {
 }
 
 body {
-  background-color: var(--gray);
+  background-color: var(--plum);
   color: var(--light-green);
 }
 
@@ -98,16 +98,16 @@ button.primary {
 
 @media (hover: hover) {
   button:hover,
-  a.button:hover {
-    color: var(--gray);
+  a.button:hover, #nav > a:hover {
+    color: var(--plum);
     background-color: var(--bright-teal);
   }
 }
 
 @media (hover: none) {
   button:active,
-  a.button:active {
-    color: var(--gray);
+  a.button:active, #nav > a:active {
+    color: var(--plum);
     background-color: var(--bright-teal);
   }
 }
