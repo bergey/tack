@@ -1,16 +1,16 @@
 import { Link } from "preact-router/match";
 
-import { Task } from "../model";
+import { Task, TaskEntity } from "../model";
 import { useProject } from "../hooks";
 
 export default function TaskList() {
-  const { tasks, updateTask, deleteTask, appendTask } = useProject();
+  const { taskList, updateTask, deleteTask, appendTask } = useProject();
 
   return (
     <>
       <h1>Things to do:</h1>
       <ul class="checklist pageContent">
-        {tasks.map((t: Task) => (
+        {taskList.map((t: TaskEntity): JSX.Element => (
           <li key={t.id}>
             <input
               type="checkbox"

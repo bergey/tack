@@ -1,7 +1,7 @@
 import * as Automerge from 'automerge';
 import { useContext, useMemo } from "preact/hooks";
 
-import { Project, TaskId, Task, emptyTask, persistProject} from "./model";
+import { Project, TaskId, Task, TaskEntity, emptyTask, persistProject} from "./model";
 import {GlobalProject} from "./GlobalProject";
 
 export function useTask(taskId: TaskId) : [Task, (update: (old: Task) => Task) => Promise<void>] {
@@ -19,7 +19,7 @@ export function useTask(taskId: TaskId) : [Task, (update: (old: Task) => Task) =
 }
 
 export interface ProjectActions {
-  taskList: Task[];
+  taskList: TaskEntity[];
   updateTask: (taskId: TaskId, update: (old: Task) => Task) => Promise<void>;
   deleteTask: (taskId: TaskId) => Promise<void>;
   appendTask: () => Promise<Task>;
