@@ -44,11 +44,16 @@ export interface Project {
   tasks: TaskMap;
 }
 
-export function emptyProject() {
-  return Automerge.change<Project>(Automerge.init(), 'init schema', (p: Project) => {
-    p.top = [];
-    p.tasks = {};
-  })
+export function emptyProject(): Project {
+  // ensure schema init change has the same actor everywhere, in case user makes edits before first server sync
+  let schema = Automerge.change<Project>(
+    Automerge.init({ actorId: '0000' }), { time: 0, message: 'init schema'},
+    (p: Project) => {
+      p.top = [];
+      p.tasks = {};
+  });
+  let [ret] = Automerge.applyChanges<Project>(Automerge.init(), [Automerge.getLastLocalChange(schema)]);
+  return ret;
 }
 
 // for testing, make this separate from addEmptyTask
