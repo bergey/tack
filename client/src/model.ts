@@ -71,3 +71,31 @@ export const persistProject = rateLimit(2000, // milliseconds
   (p: Project) => tasksDB.then((db) => db.put("projects", Automerge.save(p), "global"))
   // TODO later: persist each change & after some time / number of commit saves, persist the full state
 )
+
+let ws: WebSocket | undefined;
+let ready: boolean = false;
+let queue: string[] = [];
+
+export function echoTask(p: Project, taskId: TaskId) {
+  if (ws === undefined) {
+    ws = new WebSocket("ws://localhost:3003/ws");
+    ws.onopen = () => {
+      ready = true;
+      for (let i in queue) {
+        ws.send(queue[i]);
+        delete queue[i];
+      }
+    }
+    ws.onclose = () => {
+      ready = false;
+      ws = undefined;
+    }
+  }
+
+  let msg = p.tasks[taskId].title
+  if (ready) {
+    ws.send(msg);
+  } else {
+    queue.push(msg);
+  }
+}

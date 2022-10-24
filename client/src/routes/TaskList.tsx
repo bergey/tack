@@ -15,14 +15,13 @@ export default function TaskList() {
             <input
               type="checkbox"
               checked={t.status === "done"}
-              onChange={(ev) => updateTask(t.id, (t: Task) => markDone(t.id, ev.target.checked))}
+              onChange={(ev) => markDone(t.id, ev.target.checked)}
             ></input>
             <input
               type="text"
               value={t.title}
               onChange={(ev) => updateTask(t.id, (t) => {
                 t.title = ev.target.value;
-                return t;
               })}
             ></input>
             <button onClick={() => deleteTask(t.id)} aria-label="delete">

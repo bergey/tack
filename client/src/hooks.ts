@@ -1,7 +1,7 @@
 import * as Automerge from 'automerge';
 import { useContext, useMemo } from "preact/hooks";
 
-import { Project, TaskId, Task, TaskEntity, emptyTask, persistProject, randomTaskId} from "./model";
+import { Project, TaskId, Task, TaskEntity, echoTask, emptyTask, persistProject, randomTaskId} from "./model";
 import {GlobalProject} from "./GlobalProject";
 
 export interface TaskActions {
@@ -72,19 +72,19 @@ export function useProject() : ProjectActions {
     return newProject.tasks[newProject.top[newProject.top.length - 1]]
   }
 
- async function updateTask(taskId: TaskId, update: (old: Task) => Task) {
+ async function updateTask(taskId: TaskId, update: (old: Task) => void) {
    const newProject = Automerge.change<Project>(project, (p: Project) => {
      update(p.tasks[taskId]);
    })
 
    setProject(newProject);
+   echoTask(newProject, taskId);
    persistProject(newProject);
  }
 
   async function markDone(taskId: TaskId, done: boolean) {
     updateTask(taskId, (t: Task) => {
       t.status = done ? "done" : "todo";
-      return t;
     });
   }
 
