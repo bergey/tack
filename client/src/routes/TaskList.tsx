@@ -1,6 +1,6 @@
 import { Link } from "preact-router/match";
 
-import { Task, TaskEntity } from "../model";
+import { TaskEntity } from "../model";
 import { useProject } from "../hooks";
 
 export default function TaskList() {

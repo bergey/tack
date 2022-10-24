@@ -32,7 +32,7 @@ export function useTask(taskId: TaskId) : TaskActions {
 
 export interface ProjectActions {
   taskList: TaskEntity[];
-  updateTask: (taskId: TaskId, update: (old: Task) => Task) => Promise<void>;
+  updateTask: (taskId: TaskId, update: (old: Task) => void) => Promise<void>;
   deleteTask: (taskId: TaskId) => Promise<void>;
   appendTask: () => Promise<Task>;
   markDone(taskId: TaskId, done: boolean): Promise<void>;
