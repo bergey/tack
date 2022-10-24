@@ -1,12 +1,30 @@
+use automerge::{ActorId, Automerge};
+use async_mutex::Mutex;
 use axum::{
     extract::ws::{WebSocketUpgrade, WebSocket},
     routing::get,
     response::Response,
     Router,
 };
+use std::collections::HashMap;
 
 #[macro_use]
 extern crate log;
+#[macro_use]
+extern crate lazy_static;
+
+lazy_static! {
+    static ref PROJECT: Mutex<Automerge> =
+        Mutex::new(Automerge::new());
+
+    static ref SYNC_STATE: Mutex<HashMap<ActorId, Mutex<automerge::sync::State>>> =
+        Mutex::new(HashMap::new());
+}
+
+struct InboundMessage {
+    actor_id: ActorId,
+    automerge: automerge::sync::Message,
+}
 
 async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
     ws.on_upgrade(sync_crdt_ws)
