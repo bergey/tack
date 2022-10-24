@@ -5,12 +5,16 @@ use axum::{
     Router,
 };
 
+#[macro_use]
+extern crate log;
+
 async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
     ws.on_upgrade(sync_crdt_ws)
 }
 
 async fn sync_crdt_ws(mut socket: WebSocket) {
     while let Some(Ok(msg)) = socket.recv().await {
+        debug!("got WS message: {:?}", msg);
         if socket.send(msg).await.is_err() {
             // client disconnected
             return;
@@ -20,6 +24,7 @@ async fn sync_crdt_ws(mut socket: WebSocket) {
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     // build our application with a single route
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
