@@ -1,12 +1,11 @@
-use automerge::{ActorId, Automerge};
+use automerge::Automerge;
 use async_mutex::Mutex;
 use axum::{
-    extract::ws::{WebSocketUpgrade, WebSocket},
+    extract::ws::{WebSocketUpgrade, WebSocket, self},
     routing::get,
     response::Response,
     Router,
 };
-use std::collections::HashMap;
 
 #[macro_use]
 extern crate log;
@@ -16,14 +15,6 @@ extern crate lazy_static;
 lazy_static! {
     static ref PROJECT: Mutex<Automerge> =
         Mutex::new(Automerge::new());
-
-    static ref SYNC_STATE: Mutex<HashMap<ActorId, Mutex<automerge::sync::State>>> =
-        Mutex::new(HashMap::new());
-}
-
-struct InboundMessage {
-    actor_id: ActorId,
-    automerge: automerge::sync::Message,
 }
 
 async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
@@ -33,9 +24,19 @@ async fn ws_upgrade(ws: WebSocketUpgrade) -> Response {
 async fn sync_crdt_ws(mut socket: WebSocket) {
     while let Some(Ok(msg)) = socket.recv().await {
         debug!("got WS message: {:?}", msg);
-        if socket.send(msg).await.is_err() {
-            // client disconnected
-            return;
+        match msg {
+            ws::Message::Text(_) =>
+                if socket.send(msg).await.is_err() {
+                    // client disconnected
+                    return;
+                },
+            ws::Message::Binary(_blob) =>
+                // TODO AM here
+                if socket.send(ws::Message::Text("blob".to_string())).await.is_err() {
+                    // client disconnected
+                    return;
+                },
+            _ => {}
         }
     }
 }

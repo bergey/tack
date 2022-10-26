@@ -74,9 +74,11 @@ export const persistProject = rateLimit(2000, // milliseconds
 
 let ws: WebSocket | undefined;
 let ready: boolean = false;
-let queue: string[] = [];
+let queue: Automerge.BinarySyncMessage[] = [];
+let syncState: Automerge.SyncState = Automerge.initSyncState();
 
-export function echoTask(p: Project, taskId: TaskId) {
+// TODO work harder at preventing concurrent sends
+export function syncServer(p: Project) {
   if (ws === undefined) {
     ws = new WebSocket("ws://localhost:3003/ws");
     ws.onopen = () => {
@@ -92,10 +94,14 @@ export function echoTask(p: Project, taskId: TaskId) {
     }
   }
 
-  let msg = p.tasks[taskId].title
-  if (ready) {
-    ws.send(msg);
-  } else {
-    queue.push(msg);
+  const [nextSyncState, msg] = Automerge.generateSyncMessage(p, syncState);
+  if (msg) {
+    if (ready) {
+      ws.send(msg);
+      // TODO confirm send worked
+      syncState = nextSyncState;
+    } else {
+      queue.push(msg);
+    }
   }
 }

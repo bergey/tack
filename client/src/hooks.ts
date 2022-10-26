@@ -1,7 +1,7 @@
 import * as Automerge from 'automerge';
 import { useContext, useMemo } from "preact/hooks";
 
-import { Project, TaskId, Task, TaskEntity, echoTask, emptyTask, persistProject, randomTaskId} from "./model";
+import { Project, TaskId, Task, TaskEntity, syncServer, emptyTask, persistProject, randomTaskId} from "./model";
 import {GlobalProject} from "./GlobalProject";
 
 export interface TaskActions {
@@ -78,7 +78,7 @@ export function useProject() : ProjectActions {
    })
 
    setProject(newProject);
-   echoTask(newProject, taskId);
+   syncServer(newProject);
    persistProject(newProject);
  }
 
