@@ -109,37 +109,3 @@ export function apply(p: Project, op: Operation): void {
       }
   }
 }
-
-let ws: WebSocket | undefined;
-let ready: boolean = false;
-let queue: Automerge.BinarySyncMessage[] = [];
-let syncState: Automerge.SyncState = Automerge.initSyncState();
-
-// TODO work harder at preventing concurrent sends
-export function syncServer(p: Project) {
-  if (ws === undefined) {
-    ws = new WebSocket("ws://localhost:3003/ws");
-    ws.onopen = () => {
-      ready = true;
-      for (let i in queue) {
-        ws.send(queue[i]);
-        delete queue[i];
-      }
-    }
-    ws.onclose = () => {
-      ready = false;
-      ws = undefined;
-    }
-  }
-
-  const [nextSyncState, msg] = Automerge.generateSyncMessage(p, syncState);
-  if (msg) {
-    if (ready) {
-      ws.send(msg);
-      // TODO confirm send worked
-      syncState = nextSyncState;
-    } else {
-      queue.push(msg);
-    }
-  }
-}

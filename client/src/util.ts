@@ -51,3 +51,5 @@ export function isoDate(date: Date) {
   const dd = date.getDate().toString().padStart(2, "0");
   return `${date.getFullYear()}-${mm}-${dd}`;
 }
+
+export function doNothing() {}

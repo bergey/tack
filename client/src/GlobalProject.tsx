@@ -1,29 +1,33 @@
-import * as Automerge from 'automerge';
 import { createContext, ComponentChildren} from "preact";
-import { useEffect, useState, StateUpdater } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
-import { tasksDB} from "./migrations";
-import {Project, emptyProject} from "./model";
+import { loadProject, persistProject } from "./migrations";
+import { Operation, Project, emptyProject} from "./model";
+import { doNothing } from "./util";
+import { initWS } from "./websocket";
 
 
-export const GlobalProject = createContext<[Project, StateUpdater<Project>]>([emptyProject(), () => {}]);
+export const GlobalProject = createContext<[Project, (op: Operation) => void]>([emptyProject(), doNothing]);
 
 export function ProjectProvider({children} : {children : ComponentChildren}) {
   const [project, setProject] = useState(emptyProject());
+  const [applyLocalChange, setApplyLocalChange] = useState(doNothing)
 
   useEffect(() => {
     (async () => {
-      const db = await tasksDB
-      const binary = await db.get("projects", "global")
-      if (binary !== undefined) {
-        setProject(Automerge.load(binary));
-      }
+      const savedProject = await loadProject()
+      setProject(savedProject);
+      setApplyLocalChange(
+        initWS(savedProject, (p: Project) => {
+        setProject(p);
+        persistProject(p);
+      }));
       // TODO later, try loading from network if we don't have a Project on disk yet
     })()
   }, [setProject]);
 
   return (
-    <GlobalProject.Provider value={[project, setProject]}>
+    <GlobalProject.Provider value={[project, applyLocalChange]}>
       {children}
     </GlobalProject.Provider>
     );
