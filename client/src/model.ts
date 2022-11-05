@@ -67,10 +67,51 @@ export function emptyTask(): Task {
   };
 }
 
-export const persistProject = rateLimit(2000, // milliseconds
-  (p: Project) => tasksDB.then((db) => db.put("projects", Automerge.save(p), "global"))
-  // TODO later: persist each change & after some time / number of commit saves, persist the full state
-)
+// Single Task
+type UpdateTask
+  = { action: "set_status"; status: Status;}
+  | { action: "set_title"; title: string;}
+ | { action: "set_due"; due: string; }
+
+export type Operation
+  = { action: "append_task"; }
+  | { action: "delete_task"; taskId: TaskId; }
+  | ({ taskId: TaskId; } & UpdateTask)
+
+// apply an Operation to a Project proxy (which records changes for Automerge)
+export function apply(p: Project, op: Operation): void {
+  switch (op.action) {
+      case "append_task": {
+        const taskId = randomTaskId();
+        p.tasks[taskId] = emptyTask();
+        p.top.push(taskId);
+        break;
+      }
+      case "delete_task": {
+        // delete from top
+        const ix = p.top.findIndex(tid => tid === op.taskId);
+        if (ix !== undefined) {
+          // @ts-ignore top should be an Automerge list with deleteAt, but if it's not, I want the exception
+          p.top.deleteAt(ix);
+        }
+
+        delete p.tasks[op.taskId];
+        break;
+      }
+      case "set_title": {
+        p.tasks[op.taskId].title = op.title;
+        break;
+      }
+      case "set_status": {
+        p.tasks[op.taskId].status = op.status;
+        break;
+      }
+      case "set_due": {
+        p.tasks[op.taskId].due = op.due;
+        break;
+      }
+  }
+}
 
 let ws: WebSocket | undefined;
 let ready: boolean = false;
