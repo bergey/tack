@@ -1,8 +1,6 @@
-import { useState } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { Link } from "preact-router/match";
-import { useMemo } from "preact/hooks";
 
-import { useProject } from "../hooks";
 import { TaskEntity } from "../model";
 
 const whitespace = new RegExp("s+");
