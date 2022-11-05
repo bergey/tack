@@ -1,10 +1,13 @@
 import { Link } from "preact-router/match";
+import { useContext, useMemo} from "preact/hooks";
 
-import { TaskEntity } from "../model";
-import { useProject } from "../hooks";
+import { TaskEntity, TaskId } from "../model";
+import { GlobalProject } from "../GlobalProject";
 
 export default function TaskList() {
-  const { taskList, updateTask, markDone, deleteTask, appendTask } = useProject();
+  const [project, apply] = useContext(GlobalProject);
+
+  const taskList = useMemo(() => project.top.map((taskId: TaskId) => ({id: taskId, ...project.tasks[taskId]})), [project])
 
   return (
     <>
@@ -15,16 +18,14 @@ export default function TaskList() {
             <input
               type="checkbox"
               checked={t.status === "done"}
-              onChange={(ev) => markDone(t.id, ev.target.checked)}
+              onChange={(ev) => apply({action: "set_status", taskId: t.id, status: ev.target.checked ? "done" : "todo"})}
             ></input>
             <input
               type="text"
               value={t.title}
-              onChange={(ev) => updateTask(t.id, (t) => {
-                t.title = ev.target.value;
-              })}
+              onChange={(ev) => apply({action: "set_title", taskId: t.id, title: ev.target.value})}
             ></input>
-            <button onClick={() => deleteTask(t.id)} aria-label="delete">
+            <button onClick={() => apply({action: "delete_task", taskId: t.id})} aria-label="delete">
               <i className="fa-solid fa-trash"></i>
             </button>
             <Link href={`/detail/${t.id}`} className="button">
@@ -33,7 +34,7 @@ export default function TaskList() {
           </li>
         ))}
       </ul>
-      <button className="primary bottom" onClick={() => appendTask()}>
+      <button className="primary bottom" onClick={() => apply({action: "append_task"})}>
         New Task
       </button>
     </>
