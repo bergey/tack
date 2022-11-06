@@ -1,4 +1,4 @@
-import * as Automerge from 'automerge';
+import * as Automerge from '@automerge/automerge';
 import { Operation, Project, apply, emptyProject } from './model';
 
 // these are global, and not exported,

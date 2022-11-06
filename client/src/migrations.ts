@@ -1,4 +1,4 @@
-import * as Automerge from 'automerge';
+import * as Automerge from '@automerge/automerge';
 import { openDB } from "idb";
 
 import { Project, emptyProject } from "./model";

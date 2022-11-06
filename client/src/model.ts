@@ -1,4 +1,4 @@
-import * as Automerge from 'automerge';
+import * as Automerge from '@automerge/automerge';
 
 // Every Task has a unique ID, should be global but we depend on probability
 export type TaskId = string & { readonly __tag: unique symbol };
