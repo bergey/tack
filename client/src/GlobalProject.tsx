@@ -11,23 +11,23 @@ export const GlobalProject = createContext<[Project, (op: Operation) => void]>([
 
 export function ProjectProvider({children} : {children : ComponentChildren}) {
   const [project, setProject] = useState(emptyProject());
-  const [applyLocalChange, setApplyLocalChange] = useState(doNothing)
+  const [{apply}, setApply] = useState<{apply: (op: Operation) => void}>({apply: doNothing})
 
   useEffect(() => {
     (async () => {
       const savedProject = await loadProject()
       setProject(savedProject);
-      setApplyLocalChange(
-        initWS(savedProject, (p: Project) => {
-        setProject(p);
-        persistProject(p);
-      }));
+      setApply({
+        apply: initWS(savedProject, (p: Project) => {
+          setProject(p);
+          persistProject(p);
+      })});
       // TODO later, try loading from network if we don't have a Project on disk yet
     })()
   }, [setProject]);
 
   return (
-    <GlobalProject.Provider value={[project, applyLocalChange]}>
+    <GlobalProject.Provider value={[project, apply]}>
       {children}
     </GlobalProject.Provider>
     );
