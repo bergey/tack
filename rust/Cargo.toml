@@ -1,0 +1,22 @@
+[workspace]
+members = [
+    "automerge",
+    "automerge-c",
+    "automerge-cli",
+    "automerge-test",
+    "automerge-wasm",
+    "edit-trace",
+]
+resolver = "2"
+
+[profile.release]
+debug = true
+lto = true
+opt-level = 3
+
+[profile.bench]
+debug = true
+
+[profile.release.package.automerge-wasm]
+debug = false
+opt-level = 3
