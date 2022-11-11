@@ -37,6 +37,16 @@ async fn sync_crdt_ws(mut socket: WebSocket) {
                 let sync_msg = sync::Message::decode(&blob).unwrap();
                 let mut project = PROJECT.lock().await;
                 project.receive_sync_message(&mut sync_state, sync_msg).unwrap();
+                match project.generate_sync_message(&mut sync_state) {
+                    None => {
+                        debug!("in sync, no reply")
+                    },
+                    Some(reply) => {
+                        if socket.send(ws::Message::Binary(reply.encode())).await.is_err() {
+                            return // client disconnected
+                        }
+                    }
+                }
             },
             _ => {}
         }
