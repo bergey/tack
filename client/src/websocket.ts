@@ -11,12 +11,10 @@ let project : Project = emptyProject()
 // when we tie the knot, it will save to disk & render in React
 export function initWS(initial: Project, publish: (p: Project) => void): (op: Operation) => void {
   project = initial;
-  if (websocket !== undefined) {
-    return (op: Operation) => applyLocalChange(publish, op);
-  } else {
+  if (websocket === undefined) {
     websocket = new WebSocket("ws://localhost:3003/ws");
     websocket.onopen = () => {
-      syncServer()
+      syncServer();
     }
     websocket.onclose = () => { websocket = undefined; }
 
@@ -27,9 +25,8 @@ export function initWS(initial: Project, publish: (p: Project) => void): (op: Op
       publish(project);
       syncServer()
     }
-
-    return (op: Operation) => applyLocalChange(publish, op)
   }
+  return ((op: Operation) => applyLocalChange(publish, op));
 }
 
 // TODO when we do background sync, we really should save to disk, though not publish to React
