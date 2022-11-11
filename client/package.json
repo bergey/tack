@@ -46,7 +46,7 @@
     "react/jsx-runtime": "preact/jsx-runtime",
     "react": "preact/compat",
     "react-dom": "preact/compat",
-    "@automerge/automerge-wasm": "/vendor/automerge-wasm",
-    "@automerge/automerge": "/vendor/automerge/"
+    "@automerge/automerge-wasm": "/vendor/automerge-wasm/bundler",
+    "@automerge/automerge": "/vendor/automerge/javascript/src"
   }
 }
