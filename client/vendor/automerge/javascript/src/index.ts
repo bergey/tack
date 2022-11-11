@@ -10,10 +10,11 @@ export {AutomergeValue, Text, Counter, Int, Uint, Float64, ScalarValue} from "./
 
 import {type API, type Patch} from "@automerge/automerge-wasm";
 export { type Patch, PutPatch, DelPatch, SplicePatch, IncPatch, SyncMessage, } from "@automerge/automerge-wasm"
-import {ApiHandler, UseApi} from "./low_level"
 
 import {Actor as ActorId, Prop, ObjID, Change, DecodedChange, Heads, Automerge, MaterializeValue} from "@automerge/automerge-wasm"
 import {JsSyncState as SyncState, SyncMessage, DecodedSyncMessage} from "@automerge/automerge-wasm"
+
+export type {API, SyncState, ActorId, Conflicts, Prop, Change, ObjID, DecodedChange, DecodedSyncMessage, Heads, MaterializeValue}
 
 /** Options passed to {@link change}, and {@link emptyChange}
  * @typeParam T - The type of value contained in the document
@@ -64,14 +65,6 @@ export interface State<T> {
     snapshot: T
 }
 
-/** @hidden **/
-export function use(api: API) {
-    UseApi(api)
-}
-
-import * as wasm from "@automerge/automerge-wasm"
-use(wasm)
-
 /** 
  * Options to be passed to {@link init} or {@link load}
  * @typeParam T - The type of the value the document contains
@@ -92,8 +85,23 @@ interface InternalState<T> {
     patchCallback?: PatchCallback<T>
 }
 
+/**
+ * The type of conflicts for particular key or index
+ * 
+ * Maps and sequences in automerge can contain conflicting values for a
+ * particular key or index. In this case {@link getConflicts} can be used to
+ * obtain a `Conflicts` representing the multiple values present for the property
+ *
+ * A `Conflicts` is a map from a unique (per property or index) key to one of
+ * the possible conflicting values for the given property.
+ */
+export type Conflicts = {[key: string]: AutomergeValue}
+
+import { loadAutomergeWebAssembly} from "@automerge/automerge-wasm"
+export const Automerge = loadAutomergeWebAssembly.then((ApiHandler : API) => {
+
 /** @hidden */
-export function getBackend<T>(doc: Doc<T>): Automerge {
+function getBackend<T>(doc: Doc<T>): Automerge {
     return _state(doc).handle
 }
 
@@ -153,7 +161,7 @@ function importOpts<T>(_actor?: ActorId | InitOptions<T>): InitOptions<T> {
  *     contain an actorId). If this is null the document will be initialised with a
  *     random actor ID
  */
-export function init<T>(_opts?: ActorId | InitOptions<T>): Doc<T> {
+function init<T>(_opts?: ActorId | InitOptions<T>): Doc<T> {
     let opts = importOpts(_opts)
     let freeze = !!opts.freeze
     let patchCallback = opts.patchCallback
@@ -181,7 +189,7 @@ export function init<T>(_opts?: ActorId | InitOptions<T>): Doc<T> {
  * @param doc - The document to create a view of
  * @param heads - The hashes of the heads to create a view at
  */
-export function view<T>(doc: Doc<T>, heads: Heads): Doc<T> {
+function view<T>(doc: Doc<T>, heads: Heads): Doc<T> {
     const state = _state(doc)
     const handle = state.handle
     return state.handle.materialize("/", heads, { ...state, handle, heads }) as any
@@ -202,7 +210,7 @@ export function view<T>(doc: Doc<T>, heads: Heads): Doc<T> {
  * @param doc - The document to clone
  * @param _opts - Either an actor ID to use for the new doc or an {@link InitOptions}
  */
-export function clone<T>(doc: Doc<T>, _opts?: ActorId | InitOptions<T>): Doc<T> {
+function clone<T>(doc: Doc<T>, _opts?: ActorId | InitOptions<T>): Doc<T> {
     const state = _state(doc)
     const heads = state.heads
     const opts = importOpts(_opts)
@@ -218,7 +226,7 @@ export function clone<T>(doc: Doc<T>, _opts?: ActorId | InitOptions<T>): Doc<T> 
  * necessary in environments which support
  * [`FinalizationRegistry`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/FinalizationRegistry)
  */
-export function free<T>(doc: Doc<T>) {
+function free<T>(doc: Doc<T>) {
     return _state(doc).handle.free()
 }
 
@@ -238,7 +246,7 @@ export function free<T>(doc: Doc<T>) {
  * })
  * ```
  */
-export function from<T extends Record<string, unknown>>(initialState: T | Doc<T>, actor?: ActorId): Doc<T> {
+function from<T extends Record<string, unknown>>(initialState: T | Doc<T>, actor?: ActorId): Doc<T> {
     return change(init(actor), (d) => Object.assign(d, initialState))
 }
 
@@ -288,7 +296,7 @@ export function from<T extends Record<string, unknown>>(initialState: T | Doc<T>
  * assert.equal(patchedPath, ["key2"])
  * ```
  */
-export function change<T>(doc: Doc<T>, options: string | ChangeOptions<T> | ChangeFn<T>, callback?: ChangeFn<T>): Doc<T> {
+function change<T>(doc: Doc<T>, options: string | ChangeOptions<T> | ChangeFn<T>, callback?: ChangeFn<T>): Doc<T> {
     if (typeof options === 'function') {
         return _change(doc, {}, options)
     } else if (typeof callback === 'function') {
@@ -358,7 +366,7 @@ function _change<T>(doc: Doc<T>, options: ChangeOptions<T>, callback: ChangeFn<T
  * depends on those merged changes so that you can sign the new change with all
  * of the merged changes as part of the new change.
  */
-export function emptyChange<T>(doc: Doc<T>, options: string | ChangeOptions<T>) {
+function emptyChange<T>(doc: Doc<T>, options: string | ChangeOptions<T>) {
     if (options === undefined) {
         options = {}
     }
@@ -395,7 +403,7 @@ export function emptyChange<T>(doc: Doc<T>, options: string | ChangeOptions<T>) 
  * have the complete document yet). If you need to handle incomplete content use
  * {@link init} followed by {@link loadIncremental}.
  */
-export function load<T>(data: Uint8Array, _opts?: ActorId | InitOptions<T>): Doc<T> {
+function load<T>(data: Uint8Array, _opts?: ActorId | InitOptions<T>): Doc<T> {
     const opts = importOpts(_opts)
     const actor = opts.actor
     const patchCallback = opts.patchCallback
@@ -425,7 +433,7 @@ export function load<T>(data: Uint8Array, _opts?: ActorId | InitOptions<T>): Doc
  * Note that this function will succesfully load the results of {@link save} as
  * well as {@link getLastLocalChange} or any other incremental change.
  */
-export function loadIncremental<T>(doc: Doc<T>, data: Uint8Array, opts?: ApplyOptions<T>): Doc<T> {
+function loadIncremental<T>(doc: Doc<T>, data: Uint8Array, opts?: ApplyOptions<T>): Doc<T> {
     if (!opts) {opts = {}}
     const state = _state(doc)
     if (state.heads) {
@@ -446,7 +454,7 @@ export function loadIncremental<T>(doc: Doc<T>, data: Uint8Array, opts?: ApplyOp
  *
  * The returned bytes can be passed to {@link load} or {@link loadIncremental}
  */
-export function save<T>(doc: Doc<T>): Uint8Array {
+function save<T>(doc: Doc<T>): Uint8Array {
     return _state(doc).handle.save()
 }
 
@@ -465,7 +473,7 @@ export function save<T>(doc: Doc<T>): Uint8Array {
  * overcome this call {@link clone} on the argument before passing it to {@link
  * merge}.
  */
-export function merge<T>(local: Doc<T>, remote: Doc<T>): Doc<T> {
+function merge<T>(local: Doc<T>, remote: Doc<T>): Doc<T> {
     const localState = _state(local)
 
     if (localState.heads) {
@@ -481,22 +489,10 @@ export function merge<T>(local: Doc<T>, remote: Doc<T>): Doc<T> {
 /**
  * Get the actor ID associated with the document
  */
-export function getActorId<T>(doc: Doc<T>): ActorId {
+function getActorId<T>(doc: Doc<T>): ActorId {
     const state = _state(doc)
     return state.handle.getActorId()
 }
-
-/**
- * The type of conflicts for particular key or index
- * 
- * Maps and sequences in automerge can contain conflicting values for a
- * particular key or index. In this case {@link getConflicts} can be used to
- * obtain a `Conflicts` representing the multiple values present for the property
- *
- * A `Conflicts` is a map from a unique (per property or index) key to one of
- * the possible conflicting values for the given property.
- */
-type Conflicts = {[key: string]: AutomergeValue}
 
 function conflictAt(context: Automerge, objectId: ObjID, prop: Prop): Conflicts | undefined {
     const values = context.getAll(objectId, prop)
@@ -583,7 +579,7 @@ function conflictAt(context: Automerge, objectId: ObjID, prop: Prop): Conflicts 
  * assert.deepEqual(Object.values(conflicts), ["Babe", Beethoven"])
  * ```
  */
-export function getConflicts<T>(doc: Doc<T>, prop: Prop): Conflicts | undefined {
+function getConflicts<T>(doc: Doc<T>, prop: Prop): Conflicts | undefined {
     const state = _state(doc, false)
     const objectId = _obj(doc)
     if (objectId != null) {
@@ -600,7 +596,7 @@ export function getConflicts<T>(doc: Doc<T>, prop: Prop): Conflicts | undefined 
  * make a change locally via {@link change} you immediately call {@link
  * getLastLocalChange} and send the result over the network to other peers.
  */
-export function getLastLocalChange<T>(doc: Doc<T>): Change | undefined {
+function getLastLocalChange<T>(doc: Doc<T>): Change | undefined {
     const state = _state(doc)
     return state.handle.getLastLocalChange() || undefined
 }
@@ -611,7 +607,7 @@ export function getLastLocalChange<T>(doc: Doc<T>): Change | undefined {
  * This is useful to determine if something is actually an automerge document,
  * if `doc` is not an automerge document this will return null.
  */
-export function getObjectId(doc: any): ObjID | null {
+function getObjectId(doc: any): ObjID | null {
     return _obj(doc)
 }
 
@@ -621,7 +617,7 @@ export function getObjectId(doc: any): ObjID | null {
  *
  * Note that this will crash if there are changes in `oldState` which are not in `newState`.
  */
-export function getChanges<T>(oldState: Doc<T>, newState: Doc<T>): Change[] {
+function getChanges<T>(oldState: Doc<T>, newState: Doc<T>): Change[] {
     const o = _state(oldState)
     const n = _state(newState)
     return n.handle.getChanges(getHeads(oldState))
@@ -634,7 +630,7 @@ export function getChanges<T>(oldState: Doc<T>, newState: Doc<T>): Change[] {
  * which can be individually applied via {@link applyChanges}`
  *
  */
-export function getAllChanges<T>(doc: Doc<T>): Change[] {
+function getAllChanges<T>(doc: Doc<T>): Change[] {
     const state = _state(doc)
     return state.handle.getChanges([])
 }
@@ -650,7 +646,7 @@ export function getAllChanges<T>(doc: Doc<T>): Change[] {
  * informed of any changes which occur as a result of applying the changes
  *
  */
-export function applyChanges<T>(doc: Doc<T>, changes: Change[], opts?: ApplyOptions<T>): [Doc<T>] {
+function applyChanges<T>(doc: Doc<T>, changes: Change[], opts?: ApplyOptions<T>): [Doc<T>] {
     const state = _state(doc)
     if (!opts) {opts = {}}
     if (state.heads) {
@@ -666,7 +662,7 @@ export function applyChanges<T>(doc: Doc<T>, changes: Change[], opts?: ApplyOpti
 }
 
 /** @hidden */
-export function getHistory<T>(doc: Doc<T>): State<T>[] {
+function getHistory<T>(doc: Doc<T>): State<T>[] {
     const history = getAllChanges(doc)
     return history.map((change, index) => ({
         get change() {
@@ -683,7 +679,7 @@ export function getHistory<T>(doc: Doc<T>): State<T>[] {
 /** @hidden */
 // FIXME : no tests
 // FIXME can we just use deep equals now?
-export function equals(val1: unknown, val2: unknown): boolean {
+function equals(val1: unknown, val2: unknown): boolean {
     if (!isObject(val1) || !isObject(val2)) return val1 === val2
     const keys1 = Object.keys(val1).sort(), keys2 = Object.keys(val2).sort()
     if (keys1.length !== keys2.length) return false
@@ -699,7 +695,7 @@ export function equals(val1: unknown, val2: unknown): boolean {
  *
  * @group sync
  * */
-export function encodeSyncState(state: SyncState): Uint8Array {
+function encodeSyncState(state: SyncState): Uint8Array {
     const sync = ApiHandler.importSyncState(state)
     const result = ApiHandler.encodeSyncState(sync)
     sync.free()
@@ -711,7 +707,7 @@ export function encodeSyncState(state: SyncState): Uint8Array {
  *
  * @group sync
  */
-export function decodeSyncState(state: Uint8Array): SyncState {
+function decodeSyncState(state: Uint8Array): SyncState {
     let sync = ApiHandler.decodeSyncState(state)
     let result = ApiHandler.exportSyncState(sync)
     sync.free()
@@ -729,7 +725,7 @@ export function decodeSyncState(state: Uint8Array): SyncState {
  * `newSyncState` should replace `inState` and `syncMessage` should be sent to
  * the peer if it is not null. If `syncMessage` is null then we are up to date.
  */
-export function generateSyncMessage<T>(doc: Doc<T>, inState: SyncState): [SyncState, SyncMessage | null] {
+function generateSyncMessage<T>(doc: Doc<T>, inState: SyncState): [SyncState, SyncMessage | null] {
     const state = _state(doc)
     const syncState = ApiHandler.importSyncState(inState)
     const message = state.handle.generateSyncMessage(syncState)
@@ -754,7 +750,7 @@ export function generateSyncMessage<T>(doc: Doc<T>, inState: SyncState): [SyncSt
  * `inState` and `syncMessage` should be sent to the peer if it is not null. If
  * `syncMessage` is null then we are up to date.
  */
-export function receiveSyncMessage<T>(doc: Doc<T>, inState: SyncState, message: SyncMessage, opts?: ApplyOptions<T>): [Doc<T>, SyncState, null] {
+function receiveSyncMessage<T>(doc: Doc<T>, inState: SyncState, message: SyncMessage, opts?: ApplyOptions<T>): [Doc<T>, SyncState, null] {
     const syncState = ApiHandler.importSyncState(inState)
     if (!opts) {opts = {}}
     const state = _state(doc)
@@ -778,34 +774,34 @@ export function receiveSyncMessage<T>(doc: Doc<T>, inState: SyncState, message: 
  *
  * @group sync
  */
-export function initSyncState(): SyncState {
+function initSyncState(): SyncState {
     return ApiHandler.exportSyncState(ApiHandler.initSyncState())
 }
 
 /** @hidden */
-export function encodeChange(change: DecodedChange): Change {
+function encodeChange(change: DecodedChange): Change {
     return ApiHandler.encodeChange(change)
 }
 
 /** @hidden */
-export function decodeChange(data: Change): DecodedChange {
+function decodeChange(data: Change): DecodedChange {
     return ApiHandler.decodeChange(data)
 }
 
 /** @hidden */
-export function encodeSyncMessage(message: DecodedSyncMessage): SyncMessage {
+function encodeSyncMessage(message: DecodedSyncMessage): SyncMessage {
     return ApiHandler.encodeSyncMessage(message)
 }
 
 /** @hidden */
-export function decodeSyncMessage(message: SyncMessage): DecodedSyncMessage {
+function decodeSyncMessage(message: SyncMessage): DecodedSyncMessage {
     return ApiHandler.decodeSyncMessage(message)
 }
 
 /**
  * Get any changes in `doc` which are not dependencies of `heads`
  */
-export function getMissingDeps<T>(doc: Doc<T>, heads: Heads): Heads {
+function getMissingDeps<T>(doc: Doc<T>, heads: Heads): Heads {
     const state = _state(doc)
     return state.handle.getMissingDeps(heads)
 }
@@ -813,19 +809,19 @@ export function getMissingDeps<T>(doc: Doc<T>, heads: Heads): Heads {
 /**
  * Get the hashes of the heads of this document
  */
-export function getHeads<T>(doc: Doc<T>): Heads {
+function getHeads<T>(doc: Doc<T>): Heads {
     const state = _state(doc)
     return state.heads || state.handle.getHeads()
 }
 
 /** @hidden */
-export function dump<T>(doc: Doc<T>) {
+function dump<T>(doc: Doc<T>) {
     const state = _state(doc)
     state.handle.dump()
 }
 
 /** @hidden */
-export function toJS<T>(doc: Doc<T>): T {
+function toJS<T>(doc: Doc<T>): T {
     const state = _state(doc)
     const enabled = state.handle.enableFreeze(false)
     const result = state.handle.materialize()
@@ -833,7 +829,7 @@ export function toJS<T>(doc: Doc<T>): T {
     return result as T
 }
 
-export function isAutomerge(doc: unknown): boolean {
+function isAutomerge(doc: unknown): boolean {
   return getObjectId(doc) === "_root" && !!Reflect.get(doc as Object, STATE)
 }
 
@@ -841,4 +837,5 @@ function isObject(obj: unknown): obj is Record<string, unknown> {
     return typeof obj === 'object' && obj !== null
 }
 
-export type {API, SyncState, ActorId, Conflicts, Prop, Change, ObjID, DecodedChange, DecodedSyncMessage, Heads, MaterializeValue}
+return {getBackend, init, view, clone, free, from, change, emptyChange, load, loadIncremental, save, merge, getActorId, getConflicts, getLastLocalChange, getObjectId, getChanges, getAllChanges, applyChanges, getHistory, equals, encodeSyncState, decodeSyncState, generateSyncMessage, receiveSyncMessage, initSyncState, encodeChange, decodeChange, encodeSyncMessage, decodeSyncMessage, getMissingDeps, getHeads, dump, toJS, isAutomerge};
+});
