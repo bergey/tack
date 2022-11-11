@@ -19,7 +19,9 @@ export function initWS(initial: Project, publish: (p: Project) => void): (op: Op
     websocket.onclose = () => { websocket = undefined; }
 
     websocket.onmessage = (event) => {
-      const [newProject, newSyncState, _patch ] = Automerge.receiveSyncMessage(project, syncState, event.data);
+      let msg = new Uint8Array(event.data);
+      console.log({data: event.data, msg});
+      const [newProject, newSyncState, _patch ] = Automerge.receiveSyncMessage(project, syncState, msg as Automerge.BinarySyncMessage);
       project = newProject;
       syncState = newSyncState;
       publish(project);
@@ -38,6 +40,8 @@ function syncServer() {
     websocket.send(msg)
     // TODO confirm send worked
     syncState = nextSyncState;
+  } else if (!msg) {
+    console.log("no reply");
   }
 }
 
