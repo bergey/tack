@@ -1,0 +1,5 @@
+/.direnv
+perf.*
+/Cargo.lock
+build/
+.vim/*
