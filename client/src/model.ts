@@ -98,24 +98,7 @@ export function apply(p: Project, op: Operation): void {
         break;
       }
       case "set_title": {
-          const changes = diffChars(p.tasks[op.taskId].title.toString(), op.title);
-          console.log({ old: p.tasks[op.taskId].title.toString(), newString: op.title, changes });
-          let index = 0; // position in text corresponding to most-recently processed change
-          for (const c of changes) {
-              if (c.added) {
-                p.tasks[op.taskId].title.insertAt?.(index, ...c.value.split(''));
-                index += c.count;
-              } else if (c.removed) {
-                  for (let i = 0; i < c.value.length; i++) {
-                      p.tasks[op.taskId].title.deleteAt?.(index)
-                      // don't update index because c.value isn't in text anymore
-                  }
-              } else {
-                  // no change, just update index
-                  index += c.value.length
-              }
-          }
-        // diffText(p.tasks[op.taskId].title , op.title);
+        diffText(p.tasks[op.taskId].title , op.title);
         break;
       }
       case "set_status": {
@@ -136,8 +119,8 @@ export function diffText(text: Automerge.Text, newString: string) {
   let index = 0; // position in text corresponding to most-recently processed change
   for (const c of changes) {
     if (c.added) {
-      text.insertAt?.(index, c.value);
-      index += c.value.length;
+      text.insertAt?.(index, ...c.value.split(''));
+      index += c.count;
     } else if (c.removed) {
       for (let i = 0; i < c.value.length; i++) {
         text.deleteAt?.(index)
