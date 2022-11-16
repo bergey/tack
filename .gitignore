@@ -19,3 +19,4 @@ yarn-error.log*
 /client/dist/
 
 /server/target/
+/server/node_modules/

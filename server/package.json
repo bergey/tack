@@ -1,0 +1,9 @@
+{
+  "name": "tack-server",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "license": "MIT",
+  "scripts": {
+    "run": "deno --unstable run --allow-read --allow-env --allow-net ./index.ts"
+  }
+}

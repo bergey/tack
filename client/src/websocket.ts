@@ -19,13 +19,15 @@ export function initWS(initial: Project, publish: (p: Project) => void): (op: Op
     websocket.onclose = () => { websocket = undefined; }
 
     websocket.onmessage = (event) => {
-      let msg = new Uint8Array(event.data);
-      console.log({data: event.data, msg});
-      const [newProject, newSyncState, _patch ] = Automerge.receiveSyncMessage(project, syncState, msg as Automerge.BinarySyncMessage);
-      project = newProject;
-      syncState = newSyncState;
-      publish(project);
-      syncServer()
+      event.data.arrayBuffer().then((buf) => {
+        let msg = new Uint8Array(buf);
+        console.log({type: typeof event.data, data: event.data, buf, msg});
+        const [newProject, newSyncState, _patch ] = Automerge.receiveSyncMessage(project, syncState, msg as Automerge.BinarySyncMessage);
+        project = newProject;
+        syncState = newSyncState;
+        publish(project);
+        syncServer()
+      });
     }
   }
   return ((op: Operation) => applyLocalChange(publish, op));
