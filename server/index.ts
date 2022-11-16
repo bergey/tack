@@ -5,20 +5,38 @@ const wss = new WebSocketServer({ port: 3003 });
 
 let project = Automerge.init();
 
+interface ConnectionState {
+  syncState: Automerge.SyncState;
+  ws: WebSocket;
+}
+
+// Set of connected clients to publish changes
+let clients = new Set<ConnectionState>()
+
 wss.on('connection', function connection(ws: WebSocket) {
-  let syncState : Automerge.SyncState = Automerge.initSyncState()
+  let self: ConnectionState = {
+    syncState: Automerge.initSyncState(),
+    ws: ws
+  };
+  clients.add(self)
 
   ws.on('message', function message(data) {
     console.log('received a message from %s');
     let msg = new Uint8Array(data);
     const [newProject, newSyncState, _patch ] =
-      Automerge.receiveSyncMessage(project, syncState, msg as Automerge.BinarySyncMessage);
+      Automerge.receiveSyncMessage(project, self.syncState, msg as Automerge.BinarySyncMessage);
     project = newProject;
-    syncState = newSyncState;
-    sync(ws, syncState) // send back any changes from other clients
+    self.syncState = newSyncState;
+    // send change to all clients
+    // TODO is this racy?
+    for (const c of clients) {
+      sync(c.ws, c.syncState);
+    }
   });
 
-  sync(ws, syncState);
+  ws.onclose = () => clients.delete(self);
+
+  sync(ws, self.syncState);
 });
 
 function sync(ws: WebSocket, syncState: Automerge.SyncState) {
