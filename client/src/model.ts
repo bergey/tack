@@ -1,4 +1,6 @@
 import * as Automerge from 'automerge';
+import { diffChars } from "diff";
+
 
 // Every Task has a unique ID, should be global but we depend on probability
 export type TaskId = string & { readonly __tag: unique symbol };
@@ -16,7 +18,7 @@ export const randomTaskId = () => random128Bit() as TaskId;
 export type Status = "todo" | "wip" | "done" | "blocked" | "cancel";
 
 export interface Task {
-  title: string;
+  title: Automerge.Text;
   description: string;
   status?: Status; // optional to allow notes
   priority?: number; // default 3 until that's configurable
@@ -56,8 +58,8 @@ export function emptyProject(): Project {
 // for testing, make this separate from addEmptyTask
 export function emptyTask(): Task {
   return {
-    title: "", // TODO Automerge.Text
-    description: "",
+    title: new Automerge.Text(),
+    description: "", // TODO Text
     children: [],
     tags: [],
     // clocked: []  // TODO datetime, interval
@@ -96,7 +98,24 @@ export function apply(p: Project, op: Operation): void {
         break;
       }
       case "set_title": {
-        p.tasks[op.taskId].title = op.title;
+          const changes = diffChars(p.tasks[op.taskId].title.toString(), op.title);
+          console.log({ old: p.tasks[op.taskId].title.toString(), newString: op.title, changes });
+          let index = 0; // position in text corresponding to most-recently processed change
+          for (const c of changes) {
+              if (c.added) {
+                p.tasks[op.taskId].title.insertAt?.(index, ...c.value.split(''));
+                index += c.count;
+              } else if (c.removed) {
+                  for (let i = 0; i < c.value.length; i++) {
+                      p.tasks[op.taskId].title.deleteAt?.(index)
+                      // don't update index because c.value isn't in text anymore
+                  }
+              } else {
+                  // no change, just update index
+                  index += c.value.length
+              }
+          }
+        // diffText(p.tasks[op.taskId].title , op.title);
         break;
       }
       case "set_status": {
@@ -107,5 +126,26 @@ export function apply(p: Project, op: Operation): void {
         p.tasks[op.taskId].due = op.due;
         break;
       }
+  }
+}
+
+// Call inside Automerge.change, so methods on text are intercepted and applied
+export function diffText(text: Automerge.Text, newString: string) {
+  const changes = diffChars(text.toString(), newString);
+  console.log({old: text.toString(), newString, changes});
+  let index = 0; // position in text corresponding to most-recently processed change
+  for (const c of changes) {
+    if (c.added) {
+      text.insertAt?.(index, c.value);
+      index += c.value.length;
+    } else if (c.removed) {
+      for (let i = 0; i < c.value.length; i++) {
+        text.deleteAt?.(index)
+        // don't update index because c.value isn't in text anymore
+      }
+    } else {
+      // no change, just update index
+      index += c.value.length
+    }
   }
 }

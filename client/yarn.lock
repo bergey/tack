@@ -1173,6 +1173,11 @@ detect-libc@^1.0.3:
   resolved "https://artifactory.infra.braze.com/artifactory/api/npm/npm-proxy/detect-libc/-/detect-libc-1.0.3.tgz#fa137c4bd698edf55cd5cd02ac559f91a4c4ba9b"
   integrity sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==
 
+diff@^5.1.0:
+  version "5.1.0"
+  resolved "https://artifactory.infra.braze.com/artifactory/api/npm/npm-proxy/diff/-/diff-5.1.0.tgz#bc52d298c5ea8df9194800224445ed43ffc87e40"
+  integrity sha512-D+mk+qE8VC/PAUrlAU34N+VfXev0ghe5ywmpqrawphmVZc1bEfn56uo9qpyGp1p4xpzOHkSW4ztBd6L7Xx4ACw==
+
 doctrine@^3.0.0:
   version "3.0.0"
   resolved "https://artifactory.infra.braze.com/artifactory/api/npm/npm-proxy/doctrine/-/doctrine-3.0.0.tgz#addebead72a6574db783639dc87a121773973961"

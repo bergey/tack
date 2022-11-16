@@ -5,6 +5,7 @@
   "dependencies": {
     "@parcel/service-worker": "^2.7.0",
     "automerge": "^1.0.1-preview.7",
+    "diff": "^5.1.0",
     "idb": "^7.0.2",
     "preact": "^10.10.1",
     "preact-router": "^3.0",
@@ -16,11 +17,7 @@
     "check": "tsc --noEmit"
   },
   "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
+    "production": [">0.5%", "not dead", "not op_mini all"],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
