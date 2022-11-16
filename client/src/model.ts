@@ -70,7 +70,8 @@ export function emptyTask(): Task {
 type UpdateTask
   = { action: "set_status"; status: Status;}
   | { action: "set_title"; title: string;}
- | { action: "set_due"; due: string; }
+  | { action: "set_due"; due: string; }
+    // TODO description
 
 export type Operation
   = { action: "append_task"; }
