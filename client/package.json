@@ -2,6 +2,7 @@
   "name": "tack",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "dependencies": {
     "@parcel/service-worker": "^2.7.0",
     "automerge": "^1.0.1-preview.7",
